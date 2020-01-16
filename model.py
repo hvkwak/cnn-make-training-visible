@@ -1,8 +1,10 @@
 '''
 Some of the useful links: build a classifier using keras 
 https://gist.github.com/fchollet/0830affa1f7f19fd47b06d4cf89ed44d#file-classifier_from_little_data_script_1-py-L49
+
 Dataset is available at: 
 https://www.kaggle.com/sanikamal/rock-paper-scissors-dataset
+
 Please note that...:
 ### : Aufgabestellung - Name
 ##  : Comments
@@ -22,7 +24,7 @@ from tensorflow.keras import backend as K
 # import matplotlib.image
 # import os
 # from PIL import Image
-tf.enable_eager_execution()
+# tf.enable_eager_execution()
 
 #################################################################
 #                  Load Data and Preprocessing                  #
@@ -32,35 +34,51 @@ tf.enable_eager_execution()
 ## will change it back to normal.
 
 ### Get ready to load data and preprocess - Hyobin
-input_shape = (200,300,3)
+input_shape = (300,300,3)
 num_classes = 3
-datagen = ImageDataGenerator()
-train_data_dir = '/home/Documents/data/train' # Change for run
-validation_data_dir = '/home/Documents/data/validation'
-test_data_dir = '/home/Documents/data/test'
+train_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/train' # Change for run
+validation_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/validation'
+test_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/test'
 nb_train_samples = 100
 nb_validation_samples = 10
 epochs = 1
 batch_size = 10
 
 if K.image_data_format() == 'channels_first':
-    input_shape = (3, img_width, img_height)
+    input_shape = (3, 300, 300)
 else:
-    input_shape = (img_width, img_height, 3)
+    input_shape = (300,300,3)
 
 ### Preprocess the data properly - Hyobin
-raise NotImplementedError('Implement me')
-
+# normalize images.
+datagen = ImageDataGenerator(
+    # normalize images, featurewise.
+    featurewise_center=True,
+    featurewise_std_normalization=True)
+# load data: already done for Simon :D
+train_generator = train_datagen.flow_from_directory(
+        train_data_dir,
+        target_size=(300, 300),
+        batch_size=batch_size,
+        classes = ["rock", "paper", "scissors"],
+        class_mode='categorical')
+test_generator = test_datagen.flow_from_directory(
+        test_data_dir,
+        target_size=(300, 300),
+        batch_size=batch_size,
+        classes = ["rock", "paper", "scissors"],
+        class_mode='categorical')
 ### convert class vectors to binary class matrices - Hyobin
-raise NotImplementedError('Implement me')
+# class_mode = 'categorical' will take care of this.
 
 
-
+print("hi")
 
 ###########################################################################
 # Implement the architecture from original paper(Zeiler and Fergus, 2014) #
 ###########################################################################
 
+model = Sequential()
 ### Implement Layer 1 - Arslan
 model.add(Conv2D(filters=96, kernel_size=(7,7), strides=2, 
                  activation='relu', input_shape=input_shape))
@@ -75,7 +93,7 @@ raise NotImplementedError('Implement me')
 
 ### Implement Layer 2 - Arslan
 model.add(Conv2D(filters=256, kernel_size=(7,7), strides=2, 
-                 activation='relu')
+                 activation='relu'))
 model.add(MaxPool2D(pool_size=(3,3), strides=2))
 
 
