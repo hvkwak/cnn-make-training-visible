@@ -18,8 +18,8 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, Dense, Flatten, MaxPooling2D, Dropout
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Conv2D, Dense, Flatten, MaxPooling2D, Dropout, Input
 from tensorflow.keras.losses import categorical_crossentropy
 from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras import backend as K
@@ -30,7 +30,9 @@ import PIL
 import matplotlib.image
 from PIL import Image
 # tf.enable_eager_execution()
-from DeConvNet import MyCallback, DConvolution2D, DActivation, DInput, DDense, DFlatten, DPooling, visualize
+from DeConvNet import MyCallback, DConvolution2D, DActivation, DInput, DDense, DFlatten, DPooling, load_an_image, deconv_save
+# from DeConvNet import load_images_from_folder
+tf.compat.v1.disable_eager_execution()
 
 #################################################################
 #                  Load Data and Preprocessing                  #
@@ -40,7 +42,7 @@ num_classes = 3
 train_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/train' # Change for run
 validation_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/validation'
 test_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/test'
-nb_train_samples = 100 # 2520 images
+nb_train_samples = 10 # 2520 images
 nb_validation_samples = 100
 epochs = 1
 batch_size = 10
@@ -50,15 +52,32 @@ steps_per_epoch = nb_train_samples // batch_size
 # to save the model
 print("current directory: ", os.getcwd())
 save_dir = os.path.join(os.getcwd(), 'saved_models')
-model_name = 'keras_trained_model_with model_1.h5'
+model_name = 'keras_trained_model_with_model_2.h5'
 
 if K.image_data_format() == 'channels_first':
     input_shape = (3, 300, 300)
 else:
     input_shape = (300,300,3)
 
+'''
+# load data and rescale them to 1./255
+x_train, y_train = load_images_from_folder(train_data_dir)
+x_test, y_test = load_images_from_folder(test_data_dir)
 
-# data generators and rescale them to 1./255
+x_train = x_train.astype('float32')
+x_test = x_test.astype('float32')
+x_train /= 255
+x_test /= 255
+
+print('x_train shape: ', x_train.shape)
+print(x_train.shape[0], 'size of sample train')
+print(x_test.shape[0], 'size of sample test')
+
+# convert class vectors to binary class matrices
+y_train = keras.utils.to_categorical(y_train, num_classes)
+y_test = keras.utils.to_categorical(y_test, num_classes)
+'''
+
 train_datagen = ImageDataGenerator(rescale=1./255)
 test_datagen = ImageDataGenerator(rescale=1./255)
 
@@ -75,9 +94,41 @@ test_generator = test_datagen.flow_from_directory(
         classes = ["rock", "paper", "scissors"],
         class_mode='categorical')
 
+
 #################################################################
 #                  Model and Fit                                #
 #################################################################
+inputs = Input(shape=(300, 300, 3,))
+x = Conv2D(32, kernel_size=(3, 3),
+                 activation='relu',
+                 input_shape=(300,300,3))(inputs)
+x = Conv2D(64, kernel_size=(3, 3),
+                 activation='relu',
+                 input_shape=(300,300,3))(x)
+x = MaxPooling2D(pool_size=(2, 2))(x)
+x = Dropout(0.25)(x)
+x = Flatten()(x)
+x = Dense(128, activation='relu')(x)
+x = Dropout(0.5)(x)
+predictions = Dense(num_classes, activation='softmax')(x)
+model_func = Model(inputs=inputs, outputs=predictions)
+
+model_func.summary()
+
+model_func.compile(loss='categorical_crossentropy',
+              optimizer=keras.optimizers.Adadelta(),
+              metrics=['accuracy'])
+
+model_func.fit(
+    train_generator,
+    steps_per_epoch=nb_train_samples // batch_size,
+    epochs=epochs,
+    validation_data=test_generator,
+    validation_steps=validation_step,
+    callbacks=[MyCallback(model_func)]
+    )
+
+'''
 model2 = Sequential()
 model2.add(Conv2D(32, kernel_size=(3, 3),
                  activation='relu',
@@ -103,12 +154,14 @@ model2.fit(
     validation_steps=validation_step,
     callbacks=[MyCallback(model2)]
     )
+'''
+
 
 # Save model and weights
 if not os.path.isdir(save_dir):
     os.makedirs(save_dir)
 model_path = os.path.join(save_dir, model_name)
-model2.save(model_path)
+model_func.save(model_path)
 print('Saved trained model at %s ' % model_path)
 
 

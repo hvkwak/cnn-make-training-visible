@@ -1,5 +1,5 @@
 '''
-    Codes courtesy of: 
+    Codes mostly courtesy of: 
     https://github.com/saketd403/Visualizing-and-Understanding-Convolutional-neural-networks
 '''
 # Import necessary libraries
@@ -8,6 +8,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow GPU Debug Log Ou
 import numpy as np
 import sys
 import time
+import cv2 as cv
 from PIL import Image
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -15,12 +16,12 @@ from tensorflow.keras.layers import Input, InputLayer, Flatten, Activation, Dens
 from tensorflow.keras.layers import Convolution2D, MaxPooling2D
 from tensorflow.keras.activations import *
 from tensorflow.keras.models import Model, Sequential
-# from keras.applications import vgg16, imagenet_utils
+from tensorflow.keras.applications import imagenet_utils
 import tensorflow.keras.backend as K
 import numpy
 import math
 import matplotlib.pyplot as plt
-import PIL
+from PIL import Image
 
 class MyCallback(tf.keras.callbacks.Callback):
 
@@ -39,8 +40,22 @@ class MyCallback(tf.keras.callbacks.Callback):
             self.init_weights.append( curr_layer.weights[0].numpy() ) 
     '''
     def on_epoch_end(self, epoch, logs=None): # store all weights after training epoch
-        print("hello world!")
-        # deconv = visualize(model, img_array, layer_name, feature_to_visualize, visualize_mode)
+        img_array = load_an_image()
+        # convert keys of dictionary to list
+        layer_names = [*dict([(layer.name, layer) for layer in self.model.layers])]
+        for layer_name in layer_names[3:]:
+            feature_to_visualize = 1
+            visualize_mode = 'all'
+            deconv = process_deconv(self.model, img_array, layer_name, feature_to_visualize, visualize_mode)
+            # After Deconvolution, show the image:
+            # clipping the image back to valid range for visualization
+            # [0.0, 1.0] or [0, 255]
+            A = np.min(deconv) - 0.00001
+            deconv_img = (deconv - A)/np.max(deconv - A)
+            plt.imshow(deconv_img)
+            plt.show()
+            deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch)
+
 
 class DConvolution2D(object):
     
@@ -76,8 +91,8 @@ class DConvolution2D(object):
     def up(self, data, learning_phase = 0):
         #Forward pass
         self.up_data = self.up_func([data, learning_phase])
-        self.up_data=np.squeeze(self.up_data,axis=0)
-        self.up_data=numpy.expand_dims(self.up_data,axis=0)
+        self.up_data = np.squeeze(self.up_data, axis=0)
+        # self.up_data = np.expand_dims(self.up_data, axis=0)
         #print(self.up_data.shape)
         return(self.up_data)
 
@@ -85,7 +100,7 @@ class DConvolution2D(object):
         # Backward pass
         self.down_data= self.down_func([data, learning_phase])
         self.down_data=np.squeeze(self.down_data,axis=0)
-        self.down_data=numpy.expand_dims(self.down_data,axis=0)
+        # self.down_data=numpy.expand_dims(self.down_data,axis=0)
         #print(self.down_data.shape)
         return(self.down_data)
 
@@ -111,8 +126,8 @@ class DActivation(object):
     def up(self, data, learning_phase = 0):
         
         self.up_data = self.up_func([data, learning_phase])
-        self.up_data=np.squeeze(self.up_data,axis=0)
-        self.up_data=numpy.expand_dims(self.up_data,axis=0)
+        self.up_data = np.squeeze(self.up_data,axis=0)
+        # self.up_data = np.expand_dims(self.up_data,axis=0)
         print(self.up_data.shape)
         return(self.up_data)
 
@@ -121,7 +136,7 @@ class DActivation(object):
         
         self.down_data = self.down_func([data, learning_phase])
         self.down_data=np.squeeze(self.down_data,axis=0)
-        self.down_data=numpy.expand_dims(self.down_data,axis=0)
+        # self.down_data=numpy.expand_dims(self.down_data,axis=0)
         print(self.down_data.shape)
         return(self.down_data)
 
@@ -174,7 +189,7 @@ class DDense(object):
       
         self.up_data = self.up_func([data, learning_phase])
         self.up_data=np.squeeze(self.up_data,axis=0)
-        self.up_data=numpy.expand_dims(self.up_data,axis=0)
+        # self.up_data=numpy.expand_dims(self.up_data,axis=0)
         print(self.up_data.shape)
         return(self.up_data)
         
@@ -182,7 +197,7 @@ class DDense(object):
     
         self.down_data = self.down_func([data, learning_phase])
         self.down_data=np.squeeze(self.down_data,axis=0)
-        self.down_data=numpy.expand_dims(self.down_data,axis=0)
+        # self.down_data=numpy.expand_dims(self.down_data,axis=0)
         print(self.down_data.shape)
         return(self.down_data)
 
@@ -201,7 +216,7 @@ class DFlatten(object):
         
         self.up_data = self.up_func([data, learning_phase])
         self.up_data=np.squeeze(self.up_data,axis=0)
-        self.up_data=numpy.expand_dims(self.up_data,axis=0)
+        # self.up_data=numpy.expand_dims(self.up_data,axis=0)
         print(self.up_data.shape)
         return(self.up_data)
 
@@ -272,15 +287,15 @@ class DPooling(object):
         tile = np.ones((math.floor(switch.shape[1] / input.shape[1]), 
             math.floor( switch.shape[2] / input.shape[2])))
         print('tile '+str(tile.shape))
-        tile=numpy.expand_dims(tile,axis=3)
-        input=numpy.squeeze(input,axis=0)
+        tile = np.expand_dims(tile, axis=2)
+        input = np.squeeze(input, axis=0)
         out = np.kron(input, tile)
         print('out '+str(out.shape))
         unpooled = out * switch
-        unpooled=numpy.expand_dims(unpooled,axis=0)
+        # unpooled = np.expand_dims(unpooled, axis=0)
         return(unpooled)
 
-def visualize(model, data, layer_name, feature_to_visualize, visualize_mode):
+def process_deconv(model, data, layer_name, feature_to_visualize, visualize_mode):
     deconv_layers = []
     # Stack layers
     for i in range(len(model.layers)):
@@ -288,32 +303,41 @@ def visualize(model, data, layer_name, feature_to_visualize, visualize_mode):
             deconv_layers.append(DConvolution2D(model.layers[i]))
             deconv_layers.append(
                     DActivation(model.layers[i]))
+            print("a")
         elif isinstance(model.layers[i], MaxPooling2D):
             deconv_layers.append(DPooling(model.layers[i]))
+            print("b")
         elif isinstance(model.layers[i], Dense):
             deconv_layers.append(DDense(model.layers[i]))
             deconv_layers.append(
                     DActivation(model.layers[i]))
+            print("c")
         elif isinstance(model.layers[i], Activation):
             deconv_layers.append(DActivation(model.alyers[i]))
+            print("d")
         elif isinstance(model.layers[i], Flatten):
             deconv_layers.append(DFlatten(model.layers[i]))
+            print("e")
         elif isinstance(model.layers[i], InputLayer):
             deconv_layers.append(DInput(model.layers[i]))
+            print("f")
         else:
             print('Cannot handle this type of layer')
             print(model.layers[i].get_config())
+            print("g")
             sys.exit()
         if layer_name == model.layers[i].name:
+            print("h")
             break
 
     # Forward pass
+    
     deconv_layers[0].up(data)
     for i in range(1, len(deconv_layers)):
         deconv_layers[i].up(deconv_layers[i - 1].up_data)
 
     output = deconv_layers[-1].up_data
-    print(output.shape)
+    print("output.shape: ", output.shape)
     assert output.ndim == 2 or output.ndim == 4
     if output.ndim == 2:
         feature_map = output[:, feature_to_visualize]
@@ -339,3 +363,48 @@ def visualize(model, data, layer_name, feature_to_visualize, visualize_mode):
     deconv = deconv_layers[0].down_data
     deconv = deconv.squeeze()
     return(deconv)
+
+
+def load_an_image():
+    image_path = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/test/paper/testpaper01-05.png'
+    # img = Image.open(image_path)
+    # img = np.array(img)
+    img = cv.imread(image_path, cv.IMREAD_COLOR)
+    img = cv.resize(img, (300, 300))
+    # plt.imshow(cv.cvtColor(img, cv.COLOR_BGR2RGB))
+    # plt.show()
+    '''
+    img = Image.open(image_path)
+    img = img.resize((300, 300),resample=PIL.Image.NEAREST)
+
+    img_array = np.array(img)
+    '''
+    img = img[np.newaxis, :]
+    img = img.astype(np.float)
+    img = imagenet_utils.preprocess_input(img)
+    return(img)
+'''
+def load_images_from_folder(folder):
+    images = []
+    labels = []
+    class_names = ["rock", "paper", "scissors"]
+    for group in [1, 2, 3]:
+        for filename in os.listdir(folder+"/"+class_names[group-1]):
+            img = cv.imread(os.path.join(folder+"/"+class_names[group-1],filename), cv.IMREAD_COLOR)
+            if img is not None:
+                images.append(img)
+                labels.append(group)
+    return(images, labels)
+'''
+
+def deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch): 
+    # postprocess(bring it back to scale of 255) and save image
+    print(deconv.shape)
+    #deconv = np.transpose(deconv, ())
+    deconv = deconv - deconv.min()
+    deconv *= 1.0 / (deconv.max() + 1e-8)
+    #deconv = deconv[:, :, ::-1]
+    uint8_deconv = (deconv * 255).astype(np.uint8)
+    img = Image.fromarray(uint8_deconv, 'RGB')
+    image_path = '/home/hyobin/Documents/cnn-make-training-visible/saved_images/'
+    img.save(image_path + '\prs{}_{}_{}_{}.png'.format(layer_name, feature_to_visualize, visualize_mode, epoch))
