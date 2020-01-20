@@ -12,10 +12,14 @@ Please note that...:
 '''
 
 from __future__ import print_function
+
+import utils
 import os
+
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow GPU Debug Log Output
+os.environ["CUDA_VISIBLE_DEVICES"] = str(utils.pick_gpu_lowest_memory())
 import numpy as np
-import tensorflow as tf
+import tensorflow
 import tensorflow.keras as keras
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Model
@@ -29,10 +33,10 @@ import matplotlib.pyplot as plt
 import PIL
 import matplotlib.image
 from PIL import Image
-# tf.enable_eager_execution()
+tensorflow.enable_eager_execution()
 from DeConvNet import MyCallback, DConvolution2D, DActivation, DInput, DDense, DFlatten, DPooling, load_an_image, deconv_save
 # from DeConvNet import load_images_from_folder
-tf.compat.v1.disable_eager_execution()
+# tf.compat.v1.disable_eager_execution()
 
 #################################################################
 #                  Load Data and Preprocessing                  #
@@ -55,16 +59,16 @@ else:
     input_shape = (300,300,3)
 
 train_datagen = ImageDataGenerator(        
-        featurewise_center=False,  # set input mean to 0 over the dataset
-        samplewise_center=False,  # set each sample mean to 0
-        featurewise_std_normalization=False,  # divide inputs by std of the dataset
-        samplewise_std_normalization=False,
+        # featurewise_center=False,  # set input mean to 0 over the dataset
+        samplewise_center=True,  # set each sample mean to 0
+        # featurewise_std_normalization=False,  # divide inputs by std of the dataset
+        # samplewise_std_normalization=False,
         rescale = 1./255)  # divide each input by its std)
 test_datagen = ImageDataGenerator(
-        featurewise_center=False,  # set input mean to 0 over the dataset
-        samplewise_center=False,  # set each sample mean to 0
-        featurewise_std_normalization=False,  # divide inputs by std of the dataset
-        samplewise_std_normalization=False,
+        # featurewise_center=False,  # set input mean to 0 over the dataset
+        samplewise_center=True,  # set each sample mean to 0
+        # featurewise_std_normalization=False,  # divide inputs by std of the dataset
+        # samplewise_std_normalization=False,
         rescale = 1./255)  # divide each input by its std
 
 train_generator = train_datagen.flow_from_directory(
@@ -105,14 +109,13 @@ model_func = Model(inputs=inputs, outputs=predictions, name = 'model2')
 
 model_func.summary()
 
-model_func.compile(loss='categorical_crossentropy',
-              optimizer=keras.optimizers.Adadelta(),
-              metrics=['accuracy'])
+model_func.compile(optimizer=tensorflow.train.GradientDescentOptimizer(0.1), loss=keras.losses.categorical_crossentropy, metrics=['accuracy'])
 
 model_func.fit(
     train_generator,
     steps_per_epoch=nb_train_samples // batch_size,
     epochs=epochs,
+    verbose=1,
     validation_data=test_generator,
     validation_steps=validation_step,
     callbacks=[MyCallback(model_func)]
@@ -149,14 +152,15 @@ predictions1 = Dense(units = num_classes, activation = 'softmax')(x1)
 model_func1 = Model(inputs=inputs1, outputs=predictions1, name='model3')
 
 # Compiling the CNN
-model_func1.compile(optimizer = 'rmsprop',
-                   loss = 'categorical_crossentropy', 
+model_func1.compile(optimizer = tensorflow.train.GradientDescentOptimizer(0.1),
+                   loss = keras.losses.categorical_crossentropy, 
                    metrics = ['accuracy'])
 model_func1.summary()
 model_func1.fit(
     train_generator,
     steps_per_epoch=nb_train_samples // batch_size,
     epochs=epochs,
+    verbose=1,
     validation_data=test_generator,
     validation_steps=validation_step,
     callbacks=[MyCallback(model_func1)]

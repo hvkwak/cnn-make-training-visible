@@ -16,7 +16,7 @@ from tensorflow.keras.layers import Input, InputLayer, Flatten, Activation, Dens
 from tensorflow.keras.layers import Convolution2D, MaxPooling2D
 from tensorflow.keras.activations import *
 from tensorflow.keras.models import Model, Sequential
-from tensorflow.keras.applications import imagenet_utils
+# from tensorflow.keras.applications import imagenet_utils
 import tensorflow.keras.backend as K
 import numpy
 import math
@@ -366,12 +366,12 @@ def load_an_image():
     # img = np.array(img)
     img = cv.imread(image_path, cv.IMREAD_COLOR) # BGR image
     img = cv.resize(img, (300, 300))
-    img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+    # img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
     # plt.imshow(cv.cvtColor(img, cv.COLOR_BGR2RGB))
     # plt.show()
     img = img[np.newaxis, :]
-    img = img.astype(np.float)
-    img = imagenet_utils.preprocess_input(x = img, mode = 'caffe')/255.0
+    img = (img - np.mean(img))/255.0
+    # img = imagenet_utils.preprocess_input(x = img, mode = 'caffe')/255.0
     return(img)
 
 def deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch, model_name, i):
