@@ -4,7 +4,7 @@
 '''
 # Import necessary libraries
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow GPU Debug Log Output
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow GPU Debug Log Output
 import numpy as np
 import sys
 import time
@@ -361,7 +361,7 @@ def process_deconv(model, data, layer_name, feature_to_visualize, visualize_mode
 
 
 def load_an_image():
-    image_path = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/test/paper/testpaper01-05.png'
+    image_path = '~/Documents/rpsdata/test/paper/testpaper01-05.png'
     # img = Image.open(image_path)
     # img = np.array(img)
     img = cv.imread(image_path, cv.IMREAD_COLOR) # BGR image
@@ -388,6 +388,6 @@ def deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch,
     # deconv = deconv[:, :, ::-1]
     uint8_deconv = (deconv * 255).astype(np.uint8)
     img = Image.fromarray(uint8_deconv, 'RGB')
-    image_path = '/home/hyobin/Documents/cnn-make-training-visible/saved_images/'
+    image_path = '~/Documents/Workspace/cnn-make-training-visible/saved_images/'
     # layer_name, which is 'i'th layer of the architecture
     img.save(image_path + '\{}_Layer{}_{}_epoch{}.png'.format(model_name, i, layer_name, epoch+1))
