@@ -42,44 +42,30 @@ num_classes = 3
 train_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/train' # Change for run
 validation_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/validation'
 test_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/test'
-nb_train_samples = 10 # 2520 images
+nb_train_samples = 50 # 2520 images
 nb_validation_samples = 100
 epochs = 1
 batch_size = 10
 validation_step = nb_validation_samples // batch_size
 steps_per_epoch = nb_train_samples // batch_size
 
-# to save the model
-print("current directory: ", os.getcwd())
-save_dir = os.path.join(os.getcwd(), 'saved_models')
-model_name = 'keras_trained_model_with_model_2.h5'
-
 if K.image_data_format() == 'channels_first':
     input_shape = (3, 300, 300)
 else:
     input_shape = (300,300,3)
 
-'''
-# load data and rescale them to 1./255
-x_train, y_train = load_images_from_folder(train_data_dir)
-x_test, y_test = load_images_from_folder(test_data_dir)
-
-x_train = x_train.astype('float32')
-x_test = x_test.astype('float32')
-x_train /= 255
-x_test /= 255
-
-print('x_train shape: ', x_train.shape)
-print(x_train.shape[0], 'size of sample train')
-print(x_test.shape[0], 'size of sample test')
-
-# convert class vectors to binary class matrices
-y_train = keras.utils.to_categorical(y_train, num_classes)
-y_test = keras.utils.to_categorical(y_test, num_classes)
-'''
-
-train_datagen = ImageDataGenerator(rescale=1./255)
-test_datagen = ImageDataGenerator(rescale=1./255)
+train_datagen = ImageDataGenerator(        
+        featurewise_center=False,  # set input mean to 0 over the dataset
+        samplewise_center=False,  # set each sample mean to 0
+        featurewise_std_normalization=False,  # divide inputs by std of the dataset
+        samplewise_std_normalization=False,
+        rescale = 1./255)  # divide each input by its std)
+test_datagen = ImageDataGenerator(
+        featurewise_center=False,  # set input mean to 0 over the dataset
+        samplewise_center=False,  # set each sample mean to 0
+        featurewise_std_normalization=False,  # divide inputs by std of the dataset
+        samplewise_std_normalization=False,
+        rescale = 1./255)  # divide each input by its std
 
 train_generator = train_datagen.flow_from_directory(
         train_data_dir,
@@ -96,22 +82,26 @@ test_generator = test_datagen.flow_from_directory(
 
 
 #################################################################
-#                  Model and Fit                                #
+#                  Models and Fit                               #
 #################################################################
+
+# Model 2 - Arslan's alternative suggestion
 inputs = Input(shape=(300, 300, 3,))
 x = Conv2D(32, kernel_size=(3, 3),
                  activation='relu',
+                 padding = 'same',
                  input_shape=(300,300,3))(inputs)
 x = Conv2D(64, kernel_size=(3, 3),
                  activation='relu',
+                 padding = 'same',
                  input_shape=(300,300,3))(x)
 x = MaxPooling2D(pool_size=(2, 2))(x)
-x = Dropout(0.25)(x)
+# x = Dropout(0.25)(x)
 x = Flatten()(x)
 x = Dense(128, activation='relu')(x)
-x = Dropout(0.5)(x)
+# x = Dropout(0.5)(x)
 predictions = Dense(num_classes, activation='softmax')(x)
-model_func = Model(inputs=inputs, outputs=predictions)
+model_func = Model(inputs=inputs, outputs=predictions, name = 'model2')
 
 model_func.summary()
 
@@ -127,6 +117,83 @@ model_func.fit(
     validation_steps=validation_step,
     callbacks=[MyCallback(model_func)]
     )
+
+
+# Model 3 - Arslan's another alternative suggestion
+inputs1 = Input(shape=(300, 300, 3,))
+# Step 1 - Convolution
+x1 = Conv2D(32, (3, 3), padding='same', input_shape = input_shape, activation = 'relu')(inputs1)
+x1 = Conv2D(32, (3, 3), padding = 'same', activation='relu')(x1)
+x1 = MaxPooling2D(pool_size=(2, 2))(x1)
+# x1 = Dropout(0.5)(x1)
+
+# Adding a second convolutional layer
+x1 = Conv2D(64, (3, 3), padding='same', activation = 'relu')(x1)
+x1 = Conv2D(64, (3, 3), padding = 'same', activation='relu')(x1)
+x1 = MaxPooling2D(pool_size=(2, 2))(x1)
+# x1 = Dropout(0.5)(x1)
+
+# Adding a third convolutional layer
+x1 = Conv2D(64, (3, 3), padding ='same', activation = 'relu')(x1)
+x1 = Conv2D(64, (3, 3), padding = 'same', activation='relu')(x1)
+x1 = MaxPooling2D(pool_size=(2, 2))(x1)
+# x1 = Dropout(0.5)(x1)
+
+# Step 3 - Flattening
+x1 = Flatten()(x1)
+
+# Step 4 - Full connection
+x1 = Dense(units = 512, activation = 'relu')(x1)
+# x1 = Dropout(0.5)(x1)
+predictions1 = Dense(units = num_classes, activation = 'softmax')(x1)
+model_func1 = Model(inputs=inputs1, outputs=predictions1, name='model3')
+
+# Compiling the CNN
+model_func1.compile(optimizer = 'rmsprop',
+                   loss = 'categorical_crossentropy', 
+                   metrics = ['accuracy'])
+model_func1.summary()
+model_func1.fit(
+    train_generator,
+    steps_per_epoch=nb_train_samples // batch_size,
+    epochs=epochs,
+    validation_data=test_generator,
+    validation_steps=validation_step,
+    callbacks=[MyCallback(model_func1)]
+    )
+
+
+################################################################
+####                Save Models                             ####
+################################################################
+print("current directory: ", os.getcwd())
+save_dir = os.path.join(os.getcwd(), 'saved_models')
+model_name = 'keras_trained_model_with_model_2.h5'
+model_name1 = 'keras_trained_model_with_model_3.h5'
+if not os.path.isdir(save_dir):
+    os.makedirs(save_dir)
+
+model_path = os.path.join(save_dir, model_name)
+model_path1 = os.path.join(save_dir, model_name1)
+model_func.save(model_path)
+model_func1.save(model_path1)
+print('Saved trained model at %s ' % model_path)
+print('Saved trained model at %s ' % model_path1)
+
+
+################################################################
+####             Occluded image prediction                  ####
+################################################################
+
+
+
+
+
+
+
+
+
+
 
 '''
 model2 = Sequential()
@@ -155,14 +222,6 @@ model2.fit(
     callbacks=[MyCallback(model2)]
     )
 '''
-
-
-# Save model and weights
-if not os.path.isdir(save_dir):
-    os.makedirs(save_dir)
-model_path = os.path.join(save_dir, model_name)
-model_func.save(model_path)
-print('Saved trained model at %s ' % model_path)
 
 
 #################################

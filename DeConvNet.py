@@ -27,35 +27,40 @@ class MyCallback(tf.keras.callbacks.Callback):
 
     def __init__(self, model):
         self.model = model
+    
         '''
         self.image_array = 
         self.layer_name = 
         self.feature_to_visualize = 
         self.visualize_mode = 
-        '''
-    '''
+
     def on_epoch_begin(self, epoch, logs=None): # store all weights before training epoch
         self.init_weights = []
         for curr_layer in self.model.layers[1:]:
             self.init_weights.append( curr_layer.weights[0].numpy() ) 
-    '''
+        '''
     def on_epoch_end(self, epoch, logs=None): # store all weights after training epoch
+
+        # load a random image
         img_array = load_an_image()
-        # convert keys of dictionary to list
-        layer_names = [*dict([(layer.name, layer) for layer in self.model.layers])]
-        for layer_name in layer_names[3:]:
-            feature_to_visualize = 1
-            visualize_mode = 'all'
+        
+        layer_names = [*dict([(layer.name, layer) for layer in self.model.layers])] # convert keys of dictionary to list
+        for i in range(1, len(layer_names)): # jump over the input layer
+            layer_name = layer_names[i]
+            feature_to_visualize = 1 # we don't need this actually.
+            visualize_mode = 'all'   # because we are visualizing all features
+
+            # Deconv
             deconv = process_deconv(self.model, img_array, layer_name, feature_to_visualize, visualize_mode)
-            # After Deconvolution, show the image:
-            # clipping the image back to valid range for visualization
-            # [0.0, 1.0] or [0, 255]
+            
+            # save an random image deconvolutions at each layer
+            deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch, self.model.name, i)
+            '''
             A = np.min(deconv) - 0.00001
             deconv_img = (deconv - A)/np.max(deconv - A)
             plt.imshow(deconv_img)
             plt.show()
-            deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch)
-
+            '''
 
 class DConvolution2D(object):
     
@@ -89,11 +94,11 @@ class DConvolution2D(object):
         self.down_func = K.function([input_d, K.learning_phase()], [output])
 
     def up(self, data, learning_phase = 0):
-        #Forward pass
+        # Forward pass
         self.up_data = self.up_func([data, learning_phase])
         self.up_data = np.squeeze(self.up_data, axis=0)
         # self.up_data = np.expand_dims(self.up_data, axis=0)
-        #print(self.up_data.shape)
+        # print(self.up_data.shape)
         return(self.up_data)
 
     def down(self, data, learning_phase = 0):
@@ -101,7 +106,7 @@ class DConvolution2D(object):
         self.down_data= self.down_func([data, learning_phase])
         self.down_data=np.squeeze(self.down_data,axis=0)
         # self.down_data=numpy.expand_dims(self.down_data,axis=0)
-        #print(self.down_data.shape)
+        # print(self.down_data.shape)
         return(self.down_data)
 
 class DActivation(object):
@@ -136,7 +141,7 @@ class DActivation(object):
         
         self.down_data = self.down_func([data, learning_phase])
         self.down_data=np.squeeze(self.down_data,axis=0)
-        # self.down_data=numpy.expand_dims(self.down_data,axis=0)
+        # self.down_data = np.expand_dims(self.down_data,axis=0)
         print(self.down_data.shape)
         return(self.down_data)
 
@@ -153,7 +158,7 @@ class DInput(object):
     
     def down(self, data, learning_phase = 0):
 
-        #data=np.squeeze(data,axis=0)
+        # data = np.squeeze(data,axis=0)
         data=numpy.expand_dims(data,axis=0)
         self.down_data = data
         return(self.down_data)
@@ -173,7 +178,7 @@ class DDense(object):
                  kernel_initializer=tf.constant_initializer(W), bias_initializer=tf.constant_initializer(b))(input)
         self.up_func = K.function([input, K.learning_phase()], [output])
         
-        #Transpose W  for down method
+        # Transpose W  for down method
         W = W.transpose()
         self.input_shape = layer.input_shape
         self.output_shape = layer.output_shape
@@ -213,10 +218,9 @@ class DFlatten(object):
     # Flatten 2D input into 1D output
     def up(self, data, learning_phase = 0):
 
-        
         self.up_data = self.up_func([data, learning_phase])
-        self.up_data=np.squeeze(self.up_data,axis=0)
-        # self.up_data=numpy.expand_dims(self.up_data,axis=0)
+        self.up_data = np.squeeze(self.up_data, axis=0)
+        # self.up_data = np.expand_dims(self.up_data,axis=0)
         print(self.up_data.shape)
         return(self.up_data)
 
@@ -303,35 +307,26 @@ def process_deconv(model, data, layer_name, feature_to_visualize, visualize_mode
             deconv_layers.append(DConvolution2D(model.layers[i]))
             deconv_layers.append(
                     DActivation(model.layers[i]))
-            print("a")
         elif isinstance(model.layers[i], MaxPooling2D):
             deconv_layers.append(DPooling(model.layers[i]))
-            print("b")
         elif isinstance(model.layers[i], Dense):
             deconv_layers.append(DDense(model.layers[i]))
             deconv_layers.append(
                     DActivation(model.layers[i]))
-            print("c")
         elif isinstance(model.layers[i], Activation):
-            deconv_layers.append(DActivation(model.alyers[i]))
-            print("d")
+            deconv_layers.append(DActivation(model.layers[i]))
         elif isinstance(model.layers[i], Flatten):
             deconv_layers.append(DFlatten(model.layers[i]))
-            print("e")
         elif isinstance(model.layers[i], InputLayer):
             deconv_layers.append(DInput(model.layers[i]))
-            print("f")
         else:
             print('Cannot handle this type of layer')
             print(model.layers[i].get_config())
-            print("g")
             sys.exit()
         if layer_name == model.layers[i].name:
-            print("h")
             break
 
     # Forward pass
-    
     deconv_layers[0].up(data)
     for i in range(1, len(deconv_layers)):
         deconv_layers[i].up(deconv_layers[i - 1].up_data)
@@ -369,42 +364,30 @@ def load_an_image():
     image_path = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/test/paper/testpaper01-05.png'
     # img = Image.open(image_path)
     # img = np.array(img)
-    img = cv.imread(image_path, cv.IMREAD_COLOR)
+    img = cv.imread(image_path, cv.IMREAD_COLOR) # BGR image
     img = cv.resize(img, (300, 300))
+    img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
     # plt.imshow(cv.cvtColor(img, cv.COLOR_BGR2RGB))
     # plt.show()
-    '''
-    img = Image.open(image_path)
-    img = img.resize((300, 300),resample=PIL.Image.NEAREST)
-
-    img_array = np.array(img)
-    '''
     img = img[np.newaxis, :]
     img = img.astype(np.float)
-    img = imagenet_utils.preprocess_input(img)
+    img = imagenet_utils.preprocess_input(x = img, mode = 'caffe')/255.0
     return(img)
-'''
-def load_images_from_folder(folder):
-    images = []
-    labels = []
-    class_names = ["rock", "paper", "scissors"]
-    for group in [1, 2, 3]:
-        for filename in os.listdir(folder+"/"+class_names[group-1]):
-            img = cv.imread(os.path.join(folder+"/"+class_names[group-1],filename), cv.IMREAD_COLOR)
-            if img is not None:
-                images.append(img)
-                labels.append(group)
-    return(images, labels)
-'''
 
-def deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch): 
+def deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch, model_name, i):
+    save_dir = os.path.join(os.getcwd(), 'saved_models'+'_'+str(model_name))
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
     # postprocess(bring it back to scale of 255) and save image
     print(deconv.shape)
     #deconv = np.transpose(deconv, ())
+
+    # clipping the image back to valid range for visualization : [0.0, 1.0]
     deconv = deconv - deconv.min()
-    deconv *= 1.0 / (deconv.max() + 1e-8)
-    #deconv = deconv[:, :, ::-1]
+    deconv *= 1.0 / (deconv.max() + 1e-8) # prevents numeric problem to visualize it.. 
+    # deconv = deconv[:, :, ::-1]
     uint8_deconv = (deconv * 255).astype(np.uint8)
     img = Image.fromarray(uint8_deconv, 'RGB')
     image_path = '/home/hyobin/Documents/cnn-make-training-visible/saved_images/'
-    img.save(image_path + '\prs{}_{}_{}_{}.png'.format(layer_name, feature_to_visualize, visualize_mode, epoch))
+    # layer_name, which is 'i'th layer of the architecture
+    img.save(image_path + '\{}_Layer{}_{}_epoch{}.png'.format(model_name, i, layer_name, epoch+1))
