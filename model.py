@@ -1,55 +1,45 @@
-'''
-Some of the useful links: build a classifier using keras 
-https://gist.github.com/fchollet/0830affa1f7f19fd47b06d4cf89ed44d#file-classifier_from_little_data_script_1-py-L49
-
-Dataset is available at: 
-https://www.kaggle.com/sanikamal/rock-paper-scissors-dataset
-
-Please note that...:
-### : Aufgabestellung - Name
-##  : Comments
-#   : disables the code
-'''
-
 from __future__ import print_function
 
 import utils
 import os
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID";
+ 
+# The GPU id to use, usually either "0" or "1";
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow GPU Debug Log Output
-os.environ["CUDA_VISIBLE_DEVICES"] = str(utils.pick_gpu_lowest_memory())
-import numpy as np
-import tensorflow
+# os.environ["CUDA_VISIBLE_DEVICES"]="1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = str(utils.pick_gpu_lowest_memory())
+
 import tensorflow.keras as keras
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Conv2D, Dense, Flatten, MaxPooling2D, Dropout, Input
 from tensorflow.keras.losses import categorical_crossentropy
-from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras import backend as K
-# from tensorflow.keras.applications import vgg16, imagenet_utils
+from DeConvNet import MyCallback, DConvolution2D, DActivation, DInput, DDense, DFlatten, DPooling, load_an_image, deconv_save
+import numpy as np
 import math
 import matplotlib.pyplot as plt
 import PIL
 import matplotlib.image
 from PIL import Image
-tensorflow.enable_eager_execution()
-from DeConvNet import MyCallback, DConvolution2D, DActivation, DInput, DDense, DFlatten, DPooling, load_an_image, deconv_save
+# import tensorflow
+# tensorflow.enable_eager_execution()
 # from DeConvNet import load_images_from_folder
-# tf.compat.v1.disable_eager_execution()
+# tensorflow.compat.v1.disable_eager_execution()
 
 #################################################################
 #                  Load Data and Preprocessing                  #
 #################################################################
 input_shape = (300,300,3)
 num_classes = 3
-train_data_dir = '~/Documents/rpsdata/train' # Change for run
-validation_data_dir = '~/Documents/rpsdata/validation'
-test_data_dir = '~/Documents/rpsdata/test'
-nb_train_samples = 2500 # 2520 images
-nb_validation_samples = 128
-epochs = 1
-batch_size = 100
+train_data_dir = '/home/hkwak/Documents/rpsdata/train' # Change for run
+validation_data_dir = '/home/hkwak/Documents/rpsdata/validation'
+test_data_dir = '/home/hkwak/Documents/rpsdata/test'
+nb_train_samples = 1250 # 2520 images
+nb_validation_samples = 125
+epochs = 50
+batch_size = 125
 validation_step = nb_validation_samples // batch_size
 steps_per_epoch = nb_train_samples // batch_size
 
@@ -90,30 +80,30 @@ test_generator = test_datagen.flow_from_directory(
 #################################################################
 
 # Model 2 - Arslan's alternative suggestion
-inputs = Input(shape=(300, 300, 3,))
-x = Conv2D(32, kernel_size=(3, 3),
+inputs0 = Input(shape=(300, 300, 3,))
+x = Conv2D(16, kernel_size=(3, 3),
                  activation='relu',
                  padding = 'same',
-                 input_shape=(300,300,3))(inputs)
-x = Conv2D(64, kernel_size=(3, 3),
+                 input_shape=(300,300,3))(inputs0)
+x = Conv2D(32, kernel_size=(3, 3),
                  activation='relu',
                  padding = 'same',
                  input_shape=(300,300,3))(x)
 x = MaxPooling2D(pool_size=(2, 2))(x)
 # x = Dropout(0.25)(x)
 x = Flatten()(x)
-x = Dense(128, activation='relu')(x)
+x = Dense(64, activation='relu')(x)
 # x = Dropout(0.5)(x)
 predictions = Dense(num_classes, activation='softmax')(x)
-model_func = Model(inputs=inputs, outputs=predictions, name = 'model2')
+model_func = Model(inputs=inputs0, outputs=predictions, name = 'model2')
 
 model_func.summary()
 
-model_func.compile(optimizer=tensorflow.train.GradientDescentOptimizer(0.1), loss=keras.losses.categorical_crossentropy, metrics=['accuracy'])
+model_func.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.Adadelta(), metrics=['accuracy'])
 
 model_func.fit(
     train_generator,
-    steps_per_epoch=nb_train_samples // batch_size,
+    steps_per_epoch = nb_train_samples // batch_size,
     epochs=epochs,
     verbose=1,
     validation_data=test_generator,
@@ -122,6 +112,10 @@ model_func.fit(
     )
 
 
+
+
+
+'''
 # Model 3 - Arslan's another alternative suggestion
 inputs1 = Input(shape=(300, 300, 3,))
 # Step 1 - Convolution
@@ -146,15 +140,13 @@ x1 = MaxPooling2D(pool_size=(2, 2))(x1)
 x1 = Flatten()(x1)
 
 # Step 4 - Full connection
-x1 = Dense(units = 512, activation = 'relu')(x1)
+x1 = Dense(128, activation = 'relu')(x1)
 # x1 = Dropout(0.5)(x1)
 predictions1 = Dense(units = num_classes, activation = 'softmax')(x1)
 model_func1 = Model(inputs=inputs1, outputs=predictions1, name='model3')
 
 # Compiling the CNN
-model_func1.compile(optimizer = tensorflow.train.GradientDescentOptimizer(0.1),
-                   loss = keras.losses.categorical_crossentropy, 
-                   metrics = ['accuracy'])
+model_func1.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.Adadelta(), metrics=['accuracy'])
 model_func1.summary()
 model_func1.fit(
     train_generator,
@@ -165,7 +157,7 @@ model_func1.fit(
     validation_steps=validation_step,
     callbacks=[MyCallback(model_func1)]
     )
-
+'''
 
 ################################################################
 ####                Save Models                             ####
@@ -173,14 +165,14 @@ model_func1.fit(
 print("current directory: ", os.getcwd())
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 model_name = 'keras_trained_model_with_model_2.h5'
-model_name1 = 'keras_trained_model_with_model_3.h5'
+# model_name1 = 'keras_trained_model_with_model_3.h5'
 if not os.path.isdir(save_dir):
     os.makedirs(save_dir)
 
 model_path = os.path.join(save_dir, model_name)
-model_path1 = os.path.join(save_dir, model_name1)
+# model_path1 = os.path.join(save_dir, model_name1)
 model_func.save(model_path)
-model_func1.save(model_path1)
+# model_func1.save(model_path1)
 print('Saved trained model at %s ' % model_path)
 print('Saved trained model at %s ' % model_path1)
 

@@ -41,26 +41,29 @@ class MyCallback(tf.keras.callbacks.Callback):
         '''
     def on_epoch_end(self, epoch, logs=None): # store all weights after training epoch
 
-        # load a random image
-        img_array = load_an_image()
-        
-        layer_names = [*dict([(layer.name, layer) for layer in self.model.layers])] # convert keys of dictionary to list
-        for i in range(1, len(layer_names)): # jump over the input layer
-            layer_name = layer_names[i]
-            feature_to_visualize = 1 # we don't need this actually.
-            visualize_mode = 'all'   # because we are visualizing all features
+	if epoch == 0 or epoch == 1 or epoch == 4 or epoch == 9 or epoch == 19 or epoch == 49 :
+	    # load a random image
+	    img_array = load_an_image()
 
-            # Deconv
-            deconv = process_deconv(self.model, img_array, layer_name, feature_to_visualize, visualize_mode)
-            
-            # save an random image deconvolutions at each layer
-            deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch, self.model.name, i)
-            '''
-            A = np.min(deconv) - 0.00001
-            deconv_img = (deconv - A)/np.max(deconv - A)
-            plt.imshow(deconv_img)
-            plt.show()
-            '''
+	    layer_names = [*dict([(layer.name, layer) for layer in self.model.layers])] # convert keys of dictionary to list
+	    for i in range(1, len(layer_names)): # jump over the input layer
+		layer_name = layer_names[i]
+		feature_to_visualize = 1 # we don't need this actually.
+		visualize_mode = 'all'   # because we are visualizing all features
+
+		# Deconv
+		deconv = process_deconv(self.model, img_array, layer_name, feature_to_visualize, visualize_mode)
+
+		# save an random image deconvolutions at each layer
+		deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch, self.model.name, i)
+		'''
+		A = np.min(deconv) - 0.00001
+		deconv_img = (deconv - A)/np.max(deconv - A)
+		plt.imshow(deconv_img)
+		plt.show()
+		'''
+	else:
+	    print("pass the epoch: ", epoch+1)
 
 class DConvolution2D(object):
     
@@ -361,7 +364,7 @@ def process_deconv(model, data, layer_name, feature_to_visualize, visualize_mode
 
 
 def load_an_image():
-    image_path = '~/Documents/rpsdata/test/paper/testpaper01-05.png'
+    image_path = '/home/hkwak/Documents/rpsdata/test/paper/testpaper01-05.png'
     # img = Image.open(image_path)
     # img = np.array(img)
     img = cv.imread(image_path, cv.IMREAD_COLOR) # BGR image
@@ -388,6 +391,6 @@ def deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch,
     # deconv = deconv[:, :, ::-1]
     uint8_deconv = (deconv * 255).astype(np.uint8)
     img = Image.fromarray(uint8_deconv, 'RGB')
-    image_path = '~/Documents/Workspace/cnn-make-training-visible/saved_images/'
+    image_path = '/home/hkwak/Documents/Workspace/cnn-make-training-visible/saved_images/'
     # layer_name, which is 'i'th layer of the architecture
     img.save(image_path + '\{}_Layer{}_{}_epoch{}.png'.format(model_name, i, layer_name, epoch+1))
