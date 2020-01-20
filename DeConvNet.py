@@ -41,29 +41,29 @@ class MyCallback(tf.keras.callbacks.Callback):
         '''
     def on_epoch_end(self, epoch, logs=None): # store all weights after training epoch
 
-	if epoch == 0 or epoch == 1 or epoch == 4 or epoch == 9 or epoch == 19 or epoch == 49 :
-	    # load a random image
-	    img_array = load_an_image()
+        if epoch == 0 or epoch == 1 or epoch == 4 or epoch == 9 or epoch == 19 or epoch == 49 :
+            # load a random image
+            img_array = load_an_image()
 
-	    layer_names = [*dict([(layer.name, layer) for layer in self.model.layers])] # convert keys of dictionary to list
-	    for i in range(1, len(layer_names)): # jump over the input layer
-		layer_name = layer_names[i]
-		feature_to_visualize = 1 # we don't need this actually.
-		visualize_mode = 'all'   # because we are visualizing all features
+            layer_names = [*dict([(layer.name, layer) for layer in self.model.layers])] # convert keys of dictionary to list
+            for i in range(1, len(layer_names)): # jump over the input layer
+            layer_name = layer_names[i]
+            feature_to_visualize = 1 # we don't need this actually.
+            visualize_mode = 'all'   # because we are visualizing all features
 
-		# Deconv
-		deconv = process_deconv(self.model, img_array, layer_name, feature_to_visualize, visualize_mode)
+            # Deconv
+            deconv = process_deconv(self.model, img_array, layer_name, feature_to_visualize, visualize_mode)
 
-		# save an random image deconvolutions at each layer
-		deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch, self.model.name, i)
-		'''
-		A = np.min(deconv) - 0.00001
-		deconv_img = (deconv - A)/np.max(deconv - A)
-		plt.imshow(deconv_img)
-		plt.show()
-		'''
-	else:
-	    print("pass the epoch: ", epoch+1)
+            # save an random image deconvolutions at each layer
+            deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch, self.model.name, i)
+            '''
+            A = np.min(deconv) - 0.00001
+            deconv_img = (deconv - A)/np.max(deconv - A)
+            plt.imshow(deconv_img)
+            plt.show()
+            '''
+        else:
+            print("pass the epoch: ", epoch+1)
 
 class DConvolution2D(object):
     
