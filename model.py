@@ -13,7 +13,7 @@ Please note that...:
 
 from __future__ import print_function
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow GPU Debug Log Output
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow GPU Debug Log Output
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -39,13 +39,13 @@ tf.compat.v1.disable_eager_execution()
 #################################################################
 input_shape = (300,300,3)
 num_classes = 3
-train_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/train' # Change for run
-validation_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/validation'
-test_data_dir = '/home/hyobin/Documents/WiSe1920/CVDL/dataset/rock-paper-scissors-dataset/rock-paper-scissors/test'
-nb_train_samples = 50 # 2520 images
-nb_validation_samples = 100
+train_data_dir = '~/Documents/rpsdata/train' # Change for run
+validation_data_dir = '~/Documents/rpsdata/validation'
+test_data_dir = '~/Documents/rpsdata/test'
+nb_train_samples = 2500 # 2520 images
+nb_validation_samples = 128
 epochs = 1
-batch_size = 10
+batch_size = 100
 validation_step = nb_validation_samples // batch_size
 steps_per_epoch = nb_train_samples // batch_size
 
