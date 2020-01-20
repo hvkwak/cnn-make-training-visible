@@ -47,21 +47,21 @@ class MyCallback(tf.keras.callbacks.Callback):
 
             layer_names = [*dict([(layer.name, layer) for layer in self.model.layers])] # convert keys of dictionary to list
             for i in range(1, len(layer_names)): # jump over the input layer
-            layer_name = layer_names[i]
-            feature_to_visualize = 1 # we don't need this actually.
-            visualize_mode = 'all'   # because we are visualizing all features
+                layer_name = layer_names[i]
+                feature_to_visualize = 1 # we don't need this actually.
+                visualize_mode = 'all'   # because we are visualizing all features
 
-            # Deconv
-            deconv = process_deconv(self.model, img_array, layer_name, feature_to_visualize, visualize_mode)
+                # Deconv
+                deconv = process_deconv(self.model, img_array, layer_name, feature_to_visualize, visualize_mode)
 
-            # save an random image deconvolutions at each layer
-            deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch, self.model.name, i)
-            '''
-            A = np.min(deconv) - 0.00001
-            deconv_img = (deconv - A)/np.max(deconv - A)
-            plt.imshow(deconv_img)
-            plt.show()
-            '''
+                # save an random image deconvolutions at each layer
+                deconv_save(deconv, layer_name, feature_to_visualize, visualize_mode, epoch, self.model.name, i)
+                '''
+                A = np.min(deconv) - 0.00001
+                deconv_img = (deconv - A)/np.max(deconv - A)
+                plt.imshow(deconv_img)
+                plt.show()
+                '''
         else:
             print("pass the epoch: ", epoch+1)
 
