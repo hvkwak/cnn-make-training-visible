@@ -1,0 +1,275 @@
+Model: "model2"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+input_1 (InputLayer)         [(None, 300, 300, 3)]     0         
+_________________________________________________________________
+conv2d (Conv2D)              (None, 300, 300, 32)      896       
+_________________________________________________________________
+max_pooling2d (MaxPooling2D) (None, 150, 150, 32)      0         
+_________________________________________________________________
+conv2d_1 (Conv2D)            (None, 150, 150, 32)      9248      
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 75, 75, 32)        0         
+_________________________________________________________________
+conv2d_2 (Conv2D)            (None, 75, 75, 32)        9248      
+_________________________________________________________________
+max_pooling2d_2 (MaxPooling2 (None, 15, 15, 32)        0         
+_________________________________________________________________
+flatten (Flatten)            (None, 7200)              0         
+_________________________________________________________________
+dense (Dense)                (None, 64)                460864    
+_________________________________________________________________
+dense_1 (Dense)              (None, 3)                 195       
+=================================================================
+Total params: 480,451
+Trainable params: 480,451
+Non-trainable params: 0
+_________________________________________________________________
+Train on 2520 samples, validate on 372 samples
+2020-01-24 00:07:28.404405: W tensorflow/stream_executor/platform/default/dso_loader.cc:55] Could not load dynamic library 'libcuda.so.1'; dlerror: libcuda.so.1: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /vol/local/install/opencv-4.1.0/lib/python3.5/dist-packages/cv2/../../../../lib:/vol/local/install/TensorRT-6.0.1.5/lib/:/vol/local/install/cuda-10.1/targets/x86_64-linux/lib/:/vol/local/install/cudnn-7.6.5-cuda-10.1/lib64/:/vol/local/install/cuda-10.2/lib64/:/vol/local/install/cuda-10.1/lib64/:/home/hkwak/local/lib
+2020-01-24 00:07:28.404423: E tensorflow/stream_executor/cuda/cuda_driver.cc:351] failed call to cuInit: UNKNOWN ERROR (303)
+2020-01-24 00:07:28.404438: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:156] kernel driver does not appear to be running on this host (curtiz): /proc/driver/nvidia/version does not exist
+2020-01-24 00:07:28.404649: I tensorflow/core/platform/cpu_feature_guard.cc:142] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2020-01-24 00:07:28.409564: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 3312000000 Hz
+2020-01-24 00:07:28.409772: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x558dc2e93ba0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2020-01-24 00:07:28.409785: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+Epoch 1/50
+2020-01-24 00:07:28.639812: W tensorflow/core/framework/cpu_allocator_impl.cc:81] Allocation of 1474560000 exceeds 10% of system memory.
+2020-01-24 00:07:31.334047: W tensorflow/core/framework/cpu_allocator_impl.cc:81] Allocation of 1474560000 exceeds 10% of system memory.
+ 128/2520 [>.............................] - ETA: 1:17 - loss: 1.1399 - accuracy: 0.23442020-01-24 00:07:32.747096: W tensorflow/core/framework/cpu_allocator_impl.cc:81] Allocation of 1474560000 exceeds 10% of system memory.
+2020-01-24 00:07:35.433998: W tensorflow/core/framework/cpu_allocator_impl.cc:81] Allocation of 1474560000 exceeds 10% of system memory.
+ 256/2520 [==>...........................] - ETA: 1:13 - loss: 1.1167 - accuracy: 0.31642020-01-24 00:07:36.847279: W tensorflow/core/framework/cpu_allocator_impl.cc:81] Allocation of 1474560000 exceeds 10% of system memory.
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.1125 - accuracy: 0.3355  
+process deconv:  conv2d
+process deconv:  max_pooling2d
+process deconv:  conv2d_1
+process deconv:  max_pooling2d_1
+process deconv:  conv2d_2
+2520/2520 [==============================] - 110s 44ms/sample - loss: 1.1132 - accuracy: 0.3341 - val_loss: 1.1113 - val_accuracy: 0.3333
+Epoch 2/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.1086 - accuracy: 0.3363  
+process deconv:  conv2d
+process deconv:  max_pooling2d
+process deconv:  conv2d_1
+process deconv:  max_pooling2d_1
+process deconv:  conv2d_2
+2520/2520 [==============================] - 109s 43ms/sample - loss: 1.1095 - accuracy: 0.3345 - val_loss: 1.1086 - val_accuracy: 0.3333
+Epoch 3/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.1065 - accuracy: 0.3355  
+pass the epoch:  3
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.1063 - accuracy: 0.3353 - val_loss: 1.1064 - val_accuracy: 0.3333
+Epoch 4/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.1037 - accuracy: 0.3368  
+pass the epoch:  4
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.1033 - accuracy: 0.3389 - val_loss: 1.1045 - val_accuracy: 0.3333
+Epoch 5/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.1002 - accuracy: 0.3438  
+process deconv:  conv2d
+process deconv:  max_pooling2d
+process deconv:  conv2d_1
+process deconv:  max_pooling2d_1
+process deconv:  conv2d_2
+2520/2520 [==============================] - 110s 43ms/sample - loss: 1.1008 - accuracy: 0.3405 - val_loss: 1.1029 - val_accuracy: 0.3333
+Epoch 6/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0985 - accuracy: 0.3405  
+pass the epoch:  6
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0985 - accuracy: 0.3417 - val_loss: 1.1015 - val_accuracy: 0.3333
+Epoch 7/50
+2432/2520 [===========================>..] - ETA: 3s - loss: 1.0963 - accuracy: 0.3446  
+pass the epoch:  7
+2520/2520 [==============================] - 99s 39ms/sample - loss: 1.0965 - accuracy: 0.3437 - val_loss: 1.1004 - val_accuracy: 0.3333
+Epoch 8/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0945 - accuracy: 0.3458  
+pass the epoch:  8
+2520/2520 [==============================] - 87s 35ms/sample - loss: 1.0947 - accuracy: 0.3448 - val_loss: 1.0995 - val_accuracy: 0.3333
+Epoch 9/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0930 - accuracy: 0.3483  
+pass the epoch:  9
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0930 - accuracy: 0.3484 - val_loss: 1.0988 - val_accuracy: 0.3333
+Epoch 10/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0916 - accuracy: 0.3594  
+process deconv:  conv2d
+process deconv:  max_pooling2d
+process deconv:  conv2d_1
+process deconv:  max_pooling2d_1
+process deconv:  conv2d_2
+2520/2520 [==============================] - 110s 44ms/sample - loss: 1.0915 - accuracy: 0.3607 - val_loss: 1.0980 - val_accuracy: 0.3333
+Epoch 11/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0899 - accuracy: 0.3791  
+pass the epoch:  11
+2520/2520 [==============================] - 84s 34ms/sample - loss: 1.0901 - accuracy: 0.3770 - val_loss: 1.0974 - val_accuracy: 0.3333
+Epoch 12/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0889 - accuracy: 0.3927  
+pass the epoch:  12
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0887 - accuracy: 0.3925 - val_loss: 1.0969 - val_accuracy: 0.3387
+Epoch 13/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0874 - accuracy: 0.4091  
+pass the epoch:  13
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0875 - accuracy: 0.4075 - val_loss: 1.0965 - val_accuracy: 0.3522
+Epoch 14/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0862 - accuracy: 0.4371  
+pass the epoch:  14
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0862 - accuracy: 0.4361 - val_loss: 1.0960 - val_accuracy: 0.3683
+Epoch 15/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0849 - accuracy: 0.4531  
+pass the epoch:  15
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0850 - accuracy: 0.4528 - val_loss: 1.0956 - val_accuracy: 0.3871
+Epoch 16/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0840 - accuracy: 0.4675  
+pass the epoch:  16
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0839 - accuracy: 0.4687 - val_loss: 1.0951 - val_accuracy: 0.3925
+Epoch 17/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0831 - accuracy: 0.4778  
+pass the epoch:  17
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0829 - accuracy: 0.4798 - val_loss: 1.0947 - val_accuracy: 0.3925
+Epoch 18/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0821 - accuracy: 0.4770  
+pass the epoch:  18
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0818 - accuracy: 0.4786 - val_loss: 1.0943 - val_accuracy: 0.3952
+Epoch 19/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0811 - accuracy: 0.4811  
+pass the epoch:  19
+2520/2520 [==============================] - 84s 34ms/sample - loss: 1.0808 - accuracy: 0.4837 - val_loss: 1.0939 - val_accuracy: 0.3978
+Epoch 20/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0798 - accuracy: 0.4827  
+process deconv:  conv2d
+process deconv:  max_pooling2d
+process deconv:  conv2d_1
+process deconv:  max_pooling2d_1
+process deconv:  conv2d_2
+2520/2520 [==============================] - 111s 44ms/sample - loss: 1.0798 - accuracy: 0.4825 - val_loss: 1.0934 - val_accuracy: 0.3925
+Epoch 21/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0787 - accuracy: 0.4868  
+pass the epoch:  21
+2520/2520 [==============================] - 84s 34ms/sample - loss: 1.0788 - accuracy: 0.4845 - val_loss: 1.0930 - val_accuracy: 0.3898
+Epoch 22/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0779 - accuracy: 0.4910  
+pass the epoch:  22
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0778 - accuracy: 0.4909 - val_loss: 1.0926 - val_accuracy: 0.3978
+Epoch 23/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0766 - accuracy: 0.4934  
+pass the epoch:  23
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0767 - accuracy: 0.4933 - val_loss: 1.0922 - val_accuracy: 0.4059
+Epoch 24/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0754 - accuracy: 0.5025  
+pass the epoch:  24
+2520/2520 [==============================] - 84s 34ms/sample - loss: 1.0757 - accuracy: 0.4984 - val_loss: 1.0918 - val_accuracy: 0.4113
+Epoch 25/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0745 - accuracy: 0.5029  
+pass the epoch:  25
+2520/2520 [==============================] - 84s 34ms/sample - loss: 1.0747 - accuracy: 0.5000 - val_loss: 1.0914 - val_accuracy: 0.4274
+Epoch 26/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0736 - accuracy: 0.5025  
+pass the epoch:  26
+2520/2520 [==============================] - 84s 34ms/sample - loss: 1.0736 - accuracy: 0.5028 - val_loss: 1.0910 - val_accuracy: 0.4220
+Epoch 27/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0726 - accuracy: 0.5058  
+pass the epoch:  27
+2520/2520 [==============================] - 90s 36ms/sample - loss: 1.0725 - accuracy: 0.5075 - val_loss: 1.0906 - val_accuracy: 0.4140
+Epoch 28/50
+2432/2520 [===========================>..] - ETA: 3s - loss: 1.0711 - accuracy: 0.5160  
+pass the epoch:  28
+2520/2520 [==============================] - 96s 38ms/sample - loss: 1.0714 - accuracy: 0.5131 - val_loss: 1.0901 - val_accuracy: 0.4140
+Epoch 29/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0704 - accuracy: 0.5127  
+pass the epoch:  29
+2520/2520 [==============================] - 84s 34ms/sample - loss: 1.0703 - accuracy: 0.5139 - val_loss: 1.0897 - val_accuracy: 0.4167
+Epoch 30/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0694 - accuracy: 0.5164  
+pass the epoch:  30
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0692 - accuracy: 0.5190 - val_loss: 1.0892 - val_accuracy: 0.4194
+Epoch 31/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0680 - accuracy: 0.5206  
+pass the epoch:  31
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0680 - accuracy: 0.5202 - val_loss: 1.0888 - val_accuracy: 0.4194
+Epoch 32/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0669 - accuracy: 0.5230  
+pass the epoch:  32
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0668 - accuracy: 0.5230 - val_loss: 1.0883 - val_accuracy: 0.4194
+Epoch 33/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0657 - accuracy: 0.5243  
+pass the epoch:  33
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0657 - accuracy: 0.5238 - val_loss: 1.0878 - val_accuracy: 0.4274
+Epoch 34/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0643 - accuracy: 0.5354  
+pass the epoch:  34
+2520/2520 [==============================] - 84s 34ms/sample - loss: 1.0645 - accuracy: 0.5333 - val_loss: 1.0873 - val_accuracy: 0.4328
+Epoch 35/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0635 - accuracy: 0.5354  
+pass the epoch:  35
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0633 - accuracy: 0.5361 - val_loss: 1.0868 - val_accuracy: 0.4409
+Epoch 36/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0623 - accuracy: 0.5288  
+pass the epoch:  36
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0621 - accuracy: 0.5313 - val_loss: 1.0862 - val_accuracy: 0.4516
+Epoch 37/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0607 - accuracy: 0.5461  
+pass the epoch:  37
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0609 - accuracy: 0.5437 - val_loss: 1.0857 - val_accuracy: 0.4597
+Epoch 38/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0596 - accuracy: 0.5465  
+pass the epoch:  38
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0596 - accuracy: 0.5464 - val_loss: 1.0851 - val_accuracy: 0.4785
+Epoch 39/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0584 - accuracy: 0.5604  
+pass the epoch:  39
+2520/2520 [==============================] - 84s 34ms/sample - loss: 1.0583 - accuracy: 0.5599 - val_loss: 1.0846 - val_accuracy: 0.4892
+Epoch 40/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0568 - accuracy: 0.5687  
+pass the epoch:  40
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0570 - accuracy: 0.5623 - val_loss: 1.0840 - val_accuracy: 0.5000
+Epoch 41/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0555 - accuracy: 0.5650  
+pass the epoch:  41
+2520/2520 [==============================] - 84s 33ms/sample - loss: 1.0557 - accuracy: 0.5639 - val_loss: 1.0834 - val_accuracy: 0.4973
+Epoch 42/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0544 - accuracy: 0.5732  
+pass the epoch:  42
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0544 - accuracy: 0.5734 - val_loss: 1.0828 - val_accuracy: 0.5000
+Epoch 43/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0534 - accuracy: 0.5757  
+pass the epoch:  43
+2520/2520 [==============================] - 84s 34ms/sample - loss: 1.0531 - accuracy: 0.5750 - val_loss: 1.0822 - val_accuracy: 0.5054
+Epoch 44/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0517 - accuracy: 0.5703  
+pass the epoch:  44
+2520/2520 [==============================] - 84s 34ms/sample - loss: 1.0517 - accuracy: 0.5726 - val_loss: 1.0816 - val_accuracy: 0.5054
+Epoch 45/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0501 - accuracy: 0.5847  
+pass the epoch:  45
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0503 - accuracy: 0.5837 - val_loss: 1.0809 - val_accuracy: 0.5108
+Epoch 46/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0492 - accuracy: 0.5831  
+pass the epoch:  46
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0489 - accuracy: 0.5829 - val_loss: 1.0803 - val_accuracy: 0.5215
+Epoch 47/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0475 - accuracy: 0.5925  
+pass the epoch:  47
+2520/2520 [==============================] - 85s 34ms/sample - loss: 1.0474 - accuracy: 0.5925 - val_loss: 1.0796 - val_accuracy: 0.5269
+Epoch 48/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0460 - accuracy: 0.5892  
+pass the epoch:  48
+2520/2520 [==============================] - 88s 35ms/sample - loss: 1.0459 - accuracy: 0.5917 - val_loss: 1.0789 - val_accuracy: 0.5349
+Epoch 49/50
+2432/2520 [===========================>..] - ETA: 3s - loss: 1.0446 - accuracy: 0.6028  
+pass the epoch:  49
+2520/2520 [==============================] - 98s 39ms/sample - loss: 1.0444 - accuracy: 0.6016 - val_loss: 1.0782 - val_accuracy: 0.5323
+Epoch 50/50
+2432/2520 [===========================>..] - ETA: 2s - loss: 1.0436 - accuracy: 0.5954  
+
+
+
+process deconv:  conv2d
+process deconv:  max_pooling2d
+process deconv:  conv2d_1
+process deconv:  max_pooling2d_1
+process deconv:  conv2d_2
+2520/2520 [==============================] - 428s 170ms/sample - loss: 1.0429 - accuracy: 0.5996 - val_loss: 1.0775 - val_accuracy: 0.5349
+current directory:  /home/hkwak/Documents/Workspace/cnn_make_visible/saved_images_deconv_this_model2_2020-01-24_01:20:48
+Saved trained model at /home/hkwak/Documents/Workspace/cnn_make_visible/saved_images_deconv_this_model2_2020-01-24_01:20:48/saved_models/keras_trained_model_with_model_2.h5 
+model_func prediction: normal, blacked
+model_func.predict(normal_img):  [[0.33104378 0.34684634 0.3221099 ]]
+model_func.predict(img_blacekd):  [[0.33864862 0.34854588 0.3128055 ]]
+372/372 [==============================] - 3s 8ms/sample - loss: 1.0775 - accuracy: 0.5349
+
