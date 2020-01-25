@@ -30,7 +30,7 @@ class MyCallback(tf.keras.callbacks.Callback):
 
     def __init__(self, model):
         self.model = model
-        self.directory_ = '/home/hkwak/Documents/Workspace/cnn-make-training-visible/'
+        self.directory_ = '/home/hkwak/Documents/Workspace/cnn_make_visible/'
         
         '''
         self.image_array = 
@@ -45,19 +45,19 @@ class MyCallback(tf.keras.callbacks.Callback):
         '''
     def on_epoch_end(self, epoch, logs=None): # store all weights after training epoch
         
-        test_images = load_valid_images()
-        feature_maps_subset = [3, 7, 10]
+        test_images, __ = load_images(False)
+        feature_maps_subset = [3, 7, 10]###
         results_mat = np.zeros((6, len(test_images)))
-        '''
+        
         zeit = str(datetime.datetime.now())
         datum = zeit[:-16]+'_'
         minute = zeit[-15:-7]
-        diese = datum+minute
-        '''
+        time_ = datum+minute
+        
         
         # Full trained model results:
-        if epoch == 49: # epoch change to 50.
-            target_dir = self.directory_+'saved_images_fulltrained_top5_'+str(self.model.name) + '/'
+        if epoch == 49: ### epoch change this to 50.
+            target_dir = self.directory_+'saved_images_fulltrained_top5_this_'+str(self.model.name)+'_'+time_+'/'
             if not os.path.isdir(target_dir):
                 os.makedirs(target_dir)
             
@@ -68,7 +68,7 @@ class MyCallback(tf.keras.callbacks.Callback):
                 intermediate_layer_model = Model(inputs=self.model.input, outputs=self.model.get_layer(layer_name).output)
                 
                 for i in range(len(test_images)): # for each images, take top 9 activations
-                    intermediate_output = intermediate_layer_model.predict(test_images[i]) # 32 pieces
+                    intermediate_output = intermediate_layer_model.predict(test_images[i][np.newaxis, :])
                     for k in range(len(feature_maps_subset)):
                         results_mat[k, i] = np.mean(intermediate_output[0, :, :, feature_maps_subset[k]])
                 
@@ -80,8 +80,8 @@ class MyCallback(tf.keras.callbacks.Callback):
                     # save top 5 deconv
                     feature_to_visualize = feature_maps_subset[k]
                     visualize_mode = 'all'
-                    for img_num in image_nums:
-                        img_array, filname_ = top_five_save(feature_to_visualize, layer_num+1, img_num, target_dir) # save top 5 pictures.
+                    for img_num in image_nums: # top five save using for loop
+                        img_array, filname_ = top_five_save(feature_to_visualize, layer_num, img_num, target_dir) # save top 5 pictures.
                         deconv = process_deconv(self.model, img_array, layer_name, feature_to_visualize, visualize_mode)
                         deconv_save2(deconv, target_dir, filname_)
                 
@@ -92,15 +92,16 @@ class MyCallback(tf.keras.callbacks.Callback):
 
         # deconv image at each epoch.
         if epoch == 0 or epoch == 1 or epoch == 4 or epoch == 9 or epoch == 19 or epoch == 49 :
-            target_dir = self.directory_+'saved_images_deconv_'+str(self.model.name) + '/'
+            target_dir = self.directory_+'saved_images_deconv_this_'+str(self.model.name) + '_'+time_+'/'
             if not os.path.isdir(target_dir):
                 os.makedirs(target_dir)
+            os.chdir(target_dir)
             # load a random image
             img_array = load_an_image()
             
             # a list of dictionaries
             layer_dicts = [(layer.name, layer) for layer in self.model.layers] # convert keys of dictionary to list
-            print(layer_dicts)
+            # print(layer_dicts)
             for layer_num in range(1, 6): # jump over the input layer then visualize first five layers.
                 layer_name, _ = layer_dicts[layer_num]
                 feature_to_visualize = 2
@@ -354,7 +355,7 @@ class DPooling(object):
         tile = np.expand_dims(tile, axis=3)
         input = np.squeeze(input, axis=0)
         out = np.kron(input, tile)
-        print('out '+str(out.shape))
+        # print('out '+str(out.shape))
         unpooled = out * switch
         unpooled = np.expand_dims(unpooled, axis=0)
         return(unpooled)
@@ -421,12 +422,17 @@ def process_deconv(model, data, layer_name, feature_to_visualize, visualize_mode
     return(deconv)
 
 
-def load_an_image(image_path = '/home/hkwak/Documents/rpsdata/valid/paper/P_5.jpg'):
+def load_an_image(image_path = '/home/hkwak/Documents/newrpsdata/test/scissors/S_100.png'):
     # image_path = '/home/hkwak/Documents/rpsdata/test/paper/testpaper01-05.png'
-    img = Image.open(image_path)
-    img = img.resize((500, 500),resample=Image.NEAREST)
+    png = Image.open(image_path)
+    png.load() # required for png.split()
+    
+    background = Image.new("RGB", png.size, (255, 255, 255))
+    background.paste(png, mask=png.split()[3]) # 3 is the alpha channel
 
-    img = np.array(img)
+    # img = img.resize((300, 300),resample=Image.NEAREST)
+    
+    img = np.array(background)
     # img = cv.imread(image_path, cv.IMREAD_COLOR) # BGR image
     # img = cv.resize(img, (300, 300))
     # img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
@@ -437,28 +443,66 @@ def load_an_image(image_path = '/home/hkwak/Documents/rpsdata/valid/paper/P_5.jp
     img = imagenet_utils.preprocess_input(x = img)/255.0
     return(img)
 
-def load_valid_images():
-    images = []
-    # labels = []
-    path1 = '/home/hkwak/Documents/rpsdata/valid/rock/'
-    path2 = '/home/hkwak/Documents/rpsdata/valid/paper/'
-    path3 = '/home/hkwak/Documents/rpsdata/valid/scissors/'
-    r = "R_"
-    p = "P_"
-    s = "S_"
-    # rock
-    for i in range(1, 32):
-        images.append(load_an_image(path1+r+str(i)+'.jpg'))
-    for i in range(1, 32):
-        images.append(load_an_image(path2+p+str(i)+'.jpg'))
-    for i in range(1, 32):
-        images.append(load_an_image(path3+s+str(i)+'.jpg'))
-    return(images)
-        
+def load_images(train=True):
+    if train:
+        path1 = '/home/hkwak/Documents/newrpsdata/train/rock/'
+        path2 = '/home/hkwak/Documents/newrpsdata/train/paper/'
+        path3 = '/home/hkwak/Documents/newrpsdata/train/scissors/'
+        r = "R_"
+        p = "P_"
+        s = "S_"
+        imgs_per_class = 840 # 840
+        images = [None]*(imgs_per_class*3)
+        labels = [None]*(imgs_per_class*3)
+        k = 0
+        for i in range(1, imgs_per_class+1):
+            # print(i)
+            images[k*imgs_per_class + i-1] = load_an_image(path1+r+str(i)+'.png')[0, :, :, :]
+            labels[k*imgs_per_class + i-1] = 0
+        k = k + 1
+        for i in range(1, imgs_per_class+1):
+            # print(i)
+            images[k*imgs_per_class + i-1] = load_an_image(path2+p+str(i)+'.png')[0, :, :, :]
+            labels[k*imgs_per_class + i-1] = 1
+        k = k + 1
+        for i in range(1, imgs_per_class+1):
+            # print(i)
+            images[k*imgs_per_class + i-1] = load_an_image(path3+s+str(i)+'.png')[0, :, :, :]
+            labels[k*imgs_per_class + i-1] = 2
+        return(images, labels)
+    else:
+        path1 = '/home/hkwak/Documents/newrpsdata/test/rock/'
+        path2 = '/home/hkwak/Documents/newrpsdata/test/paper/'
+        path3 = '/home/hkwak/Documents/newrpsdata/test/scissors/'
+        r = "R_"
+        p = "P_"
+        s = "S_"
+        imgs_per_class = 124 # 840
+        images = [None]*(imgs_per_class*3)
+        labels = [None]*(imgs_per_class*3)
+        k = 0
+        # rock
+        for i in range(1, imgs_per_class+1):
+            # print(i)
+            images[k*imgs_per_class + i-1] = load_an_image(path1+r+str(i)+'.png')[0, :, :, :]
+            labels[k*imgs_per_class + i-1] = 0
+        k = k+1
+        for i in range(1, imgs_per_class+1):
+            # print(i)
+            images[k*imgs_per_class + i-1] = load_an_image(path2+p+str(i)+'.png')[0, :, :, :]
+            labels[k*imgs_per_class + i-1] = 1
+        k = k+1
+        for i in range(1, imgs_per_class+1):
+            # print(i)
+            images[k*imgs_per_class + i-1] = load_an_image(path3+s+str(i)+'.png')[0, :, :, :]
+            labels[k*imgs_per_class + i-1] = 2
+        return(images, labels)
+
+    
 def top_five_save(feature_map_num, layer_num, image_num, diese):
-    path1 = '/home/hkwak/Documents/rpsdata/valid/rock/'
-    path2 = '/home/hkwak/Documents/rpsdata/valid/paper/'
-    path3 = '/home/hkwak/Documents/rpsdata/valid/scissors/'
+    path1 = '/home/hkwak/Documents/newrpsdata/test/rock/'
+    path2 = '/home/hkwak/Documents/newrpsdata/test/paper/'
+    path3 = '/home/hkwak/Documents/newrpsdata/test/scissors/'
     r = "R_"
     p = "P_"
     s = "S_"
@@ -467,29 +511,60 @@ def top_five_save(feature_map_num, layer_num, image_num, diese):
     # print("num:"+str(image_num)+" div:"+str(image_num//31)+" mod:"+str(image_num%31))
     # if not os.path.isdir(directory_+diese):
     #     os.makedirs(directory_+diese)
-    if image_num <= 30: # rock
-        image_path = path1+r+str(image_num)+'.jpg'
-        img = cv.imread(image_path, cv.IMREAD_COLOR)
+    if image_num <=123: # rock
+        image_path = path1+r+str(image_num+1)+'.png'
+        
+        png = Image.open(image_path)
+        png.load() # required for png.split()
+        
+        background = Image.new("RGB", png.size, (255, 255, 255))
+        background.paste(png, mask=png.split()[3]) # 3 is the alpha channel
+    
+        # img = img.resize((300, 300),resample=Image.NEAREST)
+        
+        img = np.array(background)
+        img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
         os.chdir(diese)
-        filename_ = 'One_of_Top5_from_layer{}_FeatureMap{}_R_image{}.jpg'.format(layer_num, feature_map_num, image_num)
+        filename_ = 'One_of_Top5_from_layer{}_FeatureMap{}_R_image{}.jpg'.format(layer_num+1, feature_map_num, image_num+1)
         cv.imwrite(filename_, img)
         img = load_an_image(image_path)
         return(img, filename_)
-    elif 31 <= image_num and image_num <= 61:
-        image_num = image_num - 31
-        image_path = path2+p+str(image_num)+'.jpg'
-        img = cv.imread(image_path, cv.IMREAD_COLOR)
+    elif 124 <= image_num and image_num <= 247:
+        image_num = image_num - 124
+        
+        image_path = path2+p+str(image_num+1)+'.png'
+        
+        png = Image.open(image_path)
+        png.load() # required for png.split()
+        
+        background = Image.new("RGB", png.size, (255, 255, 255))
+        background.paste(png, mask=png.split()[3]) # 3 is the alpha channel
+    
+        # img = img.resize((300, 300),resample=Image.NEAREST)
+        
+        img = np.array(background)
+        img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
         os.chdir(diese)
-        filename_ = 'One_of_Top5_from_layer{}_FeatureMap{}_P_image{}.jpg'.format(layer_num, feature_map_num, image_num)
+        filename_ = 'One_of_Top5_from_layer{}_FeatureMap{}_P_image{}.jpg'.format(layer_num+1, feature_map_num, image_num+1)
         cv.imwrite(filename_, img)
         img = load_an_image(image_path)
         return(img, filename_)
     else:
-        image_num = image_num - 62
-        image_path = path3+s+str(image_num)+'.jpg'
-        img = cv.imread(image_path, cv.IMREAD_COLOR)
+        image_num = image_num - 124 - 124
+        image_path = path3+s+str(image_num+1)+'.png'
+        
+        png = Image.open(image_path)
+        png.load() # required for png.split()
+        
+        background = Image.new("RGB", png.size, (255, 255, 255))
+        background.paste(png, mask=png.split()[3]) # 3 is the alpha channel
+    
+        # img = img.resize((300, 300),resample=Image.NEAREST)
+        
+        img = np.array(background)
+        img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
         os.chdir(diese)
-        filename_ = 'One_of_Top5_from_layer{}_FeatureMap{}_S_image{}.jpg'.format(layer_num, feature_map_num, image_num)
+        filename_ = 'One_of_Top5_from_layer{}_FeatureMap{}_S_image{}.jpg'.format(layer_num+1, feature_map_num, image_num+1)
         cv.imwrite(filename_, img)
         img = load_an_image(image_path)
         return(img, filename_)
@@ -513,7 +588,7 @@ def deconv_save(deconv, layer_name, feature_map_num, epoch, layer_num, target_di
     img = Image.fromarray(uint8_deconv, 'RGB')
     image_path = target_dir
     # layer_name, which is 'layer_num'th layer from the architecture
-    img.save(image_path + '\Layer{}_{}__FeatureMap{}_epoch{}.png'.format(layer_num, layer_name, feature_map_num, epoch+1))
+    img.save(image_path + '\Layer{}_{}__FeatureMap{}_epoch{}.jpg'.format(layer_num+1, layer_name, feature_map_num, epoch+1))
 
 def deconv_save2(deconv, target_dir, filename_):
     '''
