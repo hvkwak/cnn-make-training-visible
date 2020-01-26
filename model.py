@@ -26,7 +26,7 @@ input_shape = (28, 28, 1)
 num_classes = 10
 
 # change these values.
-epochs = 1 # 50
+epochs = 50 # 50
 batch_size = 128 # 128
 # imgs_per_class = 10 # 840
 # imgs_per_class = 124 # 

@@ -31,8 +31,10 @@ class MyCallback(tf.keras.callbacks.Callback):
 
     def __init__(self, model):
         self.model = model
-        self.directory_ = '/home/hyobin/Documents/test'
+        self.directory_ = '/home/hkwak/Documents/Workspace/cnn-make-training-visible/'
         self.layer_bis = int(input("layer bis? ex: Input-Conv-Conv-MaxP = 3"))
+        self.computer = input("computer_name?")
+
         '''
         self.image_array = 
         self.layer_name = 
@@ -57,8 +59,8 @@ class MyCallback(tf.keras.callbacks.Callback):
         
         
         # Full trained model results:
-        if epoch == 0: ### epoch change this to 50.
-            target_dir = self.directory_+'MNIST_full_trained_top5_'+str(self.model.name)+'_'+time_+'/'
+        if epoch ==49: ### epoch change this to 50.
+            target_dir = self.directory_+self.computer+'_MNIST_full_trained_top5_'+str(self.model.name)+'_'+time_+'/'
             if not os.path.isdir(target_dir):
                 os.makedirs(target_dir)
             
@@ -82,9 +84,9 @@ class MyCallback(tf.keras.callbacks.Callback):
                     feature_to_visualize = feature_maps_subset[k]
                     visualize_mode = 'all'
                     for img_num in image_nums: # top five save using for loop
-                        img_array, filname_ = top_five_save(feature_to_visualize, layer_num, img_num, target_dir, test_images) # save top 5 pictures.
+                        img_array, filename_, save_here = top_five_save(feature_to_visualize, layer_num, img_num, target_dir, test_images) # save top 5 pictures.
                         deconv = process_deconv(self.model, img_array, layer_name, feature_to_visualize, visualize_mode)
-                        deconv_save2(deconv, target_dir, filname_)
+                        deconv_save2(deconv, save_here, filename_)
                 
                 print("")
             
@@ -93,7 +95,7 @@ class MyCallback(tf.keras.callbacks.Callback):
 
         # deconv image at each epoch.
         if epoch == 0 or epoch == 1 or epoch == 4 or epoch == 9 or epoch == 19 or epoch == 49 :
-            target_dir = self.directory_+'MNIST_deconv_'+str(self.model.name) + '_'+time_+'/'
+            target_dir = self.directory_+self.computer+'_MNIST_deconv_'+str(self.model.name) + '_'+time_+'/'
             if not os.path.isdir(target_dir):
                 os.makedirs(target_dir)
             os.chdir(target_dir)
@@ -442,7 +444,7 @@ def load_an_image():
     x_test /= 255
     # print('x_train shape:', x_train.shape)
     # print(x_train.shape[0], 'train samples')
-    print(x_test[33, :, :, :][np.newaxis, :], 'test sample shape')
+    # print(x_test[33, :, :, :][np.newaxis, :], 'test sample shape')
     return(x_test[33, :, :, :][np.newaxis, :])
 
 def load_images(train=True):
@@ -470,9 +472,9 @@ def load_images(train=True):
     y_test = np.array(y_test)
 
     if train:
-        return(x_train[0:200, :, :, :], y_train[0:200])
+        return(x_train[:, :, :, :], y_train[:])
     else:
-        return(x_test[0:100, :, :, :], y_test[0:100])
+        return(x_test[:, :, :, :], y_test[:])
 
 '''
 def load_an_image(image_path = '/home/hkwak/Documents/newrpsdata/test/scissors/S_100.png'):
@@ -563,7 +565,7 @@ def top_five_save(feature_map_num, layer_num, image_num, target_dir, test_images
 
     filename_ = 'image{}.jpg'.format(image_num)
     cv.imwrite(filename_, (img*255).astype(np.uint8))
-    return(img[np.newaxis, :], filename_)
+    return(img[np.newaxis, :], filename_, target_dir+sub_dir)
 
 ''' 
 def top_five_save(feature_map_num, layer_num, image_num, diese):
@@ -652,7 +654,7 @@ def deconv_save(deconv, layer_name, feature_map_num, epoch, layer_num, target_di
     deconv *= 1.0 / (deconv.max() + 1e-8) # prevents numeric problem to visualize it.. 
     # deconv = deconv[:, :, ::-1]
     uint8_deconv = (deconv * 255).astype(np.uint8)
-    img = Image.fromarray(uint8_deconv, 'RGB')
+    img = Image.fromarray(uint8_deconv, 'L')
     image_path = target_dir
     # layer_name, which is 'layer_num'th layer from the architecture
     img.save(image_path + '\Layer{}_{}__FeatureMap{}_epoch{}.jpg'.format(layer_num+1, layer_name, feature_map_num, epoch+1))
@@ -672,6 +674,6 @@ def deconv_save2(deconv, target_dir, filename_):
     deconv *= 1.0 / (deconv.max() + 1e-8) # prevents numeric problem to visualize it.. 
     # deconv = deconv[:, :, ::-1]
     uint8_deconv = (deconv * 255).astype(np.uint8)
-    img = Image.fromarray(uint8_deconv, 'RGB')
+    img = Image.fromarray(uint8_deconv, 'L')
     image_path = target_dir + filename_[:-4] + '_Deconv.jpg'
     img.save(image_path)
