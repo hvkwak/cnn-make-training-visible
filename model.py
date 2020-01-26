@@ -43,7 +43,7 @@ test_y = keras.utils.to_categorical(test_y)
 #################################################################
 #                  Models and Fit                               #
 #################################################################
-whichmodel = input("model2 or model3")
+whichmodel = input("which model would you like? type in model2, model3 or model4. ")
 
 if whichmodel == "model2":
     # Model 2 - Arslan's alternative suggestion
@@ -183,8 +183,8 @@ else:
     # Step 4 - Full connection
     x2 = Dense(64, activation = 'relu')(x2)
     # x1 = Dropout(0.5)(x1)
-    predictions1 = Dense(units = num_classes, activation = 'softmax')(x2)
-    model_func2 = Model(inputs=inputs1, outputs=predictions1, name='model3')
+    predictions2 = Dense(units = num_classes, activation = 'softmax')(x2)
+    model_func2 = Model(inputs=inputs2, outputs=predictions2, name='model4')
     
     # Compiling the CNN
     model_func2.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.RMSprop(), metrics=['accuracy'])
@@ -204,13 +204,13 @@ else:
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
     model_path2 = os.path.join(save_dir, model_name2)
-    model_func2.save(model_path1)
+    model_func2.save(model_path2)
     print('Saved trained model at %s ' % model_path2)
     # load 2 images
     normal_img = load_an_image() # class: paper
     img_blacked = load_an_image()[0, :, :, :] 
     img_blacked[8:22, 8:22, :] = 0
-    print("model_func1 prediction: normal, blacked")
-    print("model_func1.predict(normal_img): ", model_func2.predict(normal_img))
-    print("model_func1.predict(img_blacekd): ", model_func2.predict(img_blacked[np.newaxis, :]))
+    print("model_func2 prediction: normal, blacked")
+    print("model_func2.predict(normal_img): ", model_func2.predict(normal_img))
+    print("model_func2.predict(img_blacekd): ", model_func2.predict(img_blacked[np.newaxis, :]))
     model_func2.evaluate(test_x, test_y)
