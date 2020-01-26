@@ -2,15 +2,9 @@ from __future__ import print_function
 
 # import utils
 import os
-# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
- 
-# The GPU id to use, usually either "0" or "1";
-# os.environ["CUDA_VISIBLE_DEVICES"]="2"
-
-# os.environ["CUDA_VISIBLE_DEVICES"]="2"
-# os.environ["CUDA_VISIBLE_DEVICES"] = str(utils.pick_gpu_lowest_memory())
 
 import tensorflow.keras as keras
+from tensorflow.keras.datasets import mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Conv2D, Dense, Flatten, MaxPooling2D, Dropout, Input
@@ -28,11 +22,11 @@ from PIL import Image
 #################################################################
 #                  Load Data and Preprocessing                  #
 #################################################################
-input_shape = (300,300,3)
-num_classes = 3
+input_shape = (28, 28, 1)
+num_classes = 10
 
 # change these values.
-epochs = 50 # 50
+epochs = 1 # 50
 batch_size = 128 # 128
 # imgs_per_class = 10 # 840
 # imgs_per_class = 124 # 
@@ -40,49 +34,9 @@ batch_size = 128 # 128
 # epoch change to 50.
 # subset [3] war [3, 7, 10]
 
-'''
-train_datagen = ImageDataGenerator(        
-        # featurewise_center=False,  # set input mean to 0 over the dataset
-        samplewise_center=True,  # set each sample mean to 0
-        # featurewise_std_normalization=False,  # divide inputs by std of the dataset
-        # samplewise_std_normalization=False,
-        rescale = 1./255)  # divide each input by its std)
-test_datagen = ImageDataGenerator(
-        # featurewise_center=False,  # set input mean to 0 over the dataset
-        samplewise_center=True,  # set each sample mean to 0
-        # featurewise_std_normalization=False,  # divide inputs by std of the dataset
-        # samplewise_std_normalization=False,
-        rescale = 1./255)  # divide each input by its std
-
-train_generator = train_datagen.flow_from_directory(
-        train_data_dir,
-        target_size=(300, 300),
-        batch_size=batch_size,
-        classes = ["rock", "paper", "scissors"],
-        class_mode='categorical')
-test_generator = test_datagen.flow_from_directory(
-        test_data_dir,
-        target_size=(300, 300),
-        batch_size=batch_size,
-        classes = ["rock", "paper", "scissors"],
-        class_mode='categorical')
-'''
 print("Load images....")
 train_x, train_y = load_images(True)
 test_x, test_y = load_images(False)
-
-
-train_x = np.array(train_x)
-train_y = np.array(train_y)
-test_x = np.array(test_x)
-test_y = np.array(test_y)
-print("wait here")
-# print('train_x shape:', train_x.shape)
-# print(x_train.shape[0], 'train samples')
-
-
-# print('test_x shape:', test_x.shape)
-# print(test_x.shape[0], 'test samples')
 train_y = keras.utils.to_categorical(train_y)
 test_y = keras.utils.to_categorical(test_y)
 
@@ -93,22 +47,28 @@ whichmodel = input("model2 or model3")
 
 if whichmodel == "model2":
     # Model 2 - Arslan's alternative suggestion
-    inputs0 = Input(shape=(300, 300, 3,))
+    inputs0 = Input(shape=(28, 28, 1,))
     x = Conv2D(32, kernel_size=(3, 3),
                      activation='relu',
                      padding = 'same',
-                     input_shape=(300,300,3))(inputs0)
+                     input_shape=(28,28,1))(inputs0)
+    x = Conv2D(64, kernel_size=(3, 3),
+                     activation='relu',
+                     padding = 'same',
+                     input_shape=(28,28,1))(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)       
+    '''
     x = Conv2D(32, kernel_size=(3, 3),
                      activation='relu',
                      padding = 'same',
-                     input_shape=(150, 150,3))(x)
+                     input_shape=(14, 14,1))(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Conv2D(32, kernel_size=(3, 3),
                      activation='relu',
                      padding = 'same',
-                     input_shape=(75, 75,3))(x)
-    x = MaxPooling2D(pool_size=(5, 5))(x)                                  
+                     input_shape=(7, 7,1))(x)
+    x = MaxPooling2D(pool_size=(7, 7))(x)
+    '''                            
     x = Flatten()(x)
     x = Dense(64, activation='relu')(x)
     predictions = Dense(num_classes, activation='softmax')(x)
@@ -122,10 +82,10 @@ if whichmodel == "model2":
         batch_size = batch_size,
         epochs=epochs,
         shuffle = True,
-        verbose=1,
         validation_data=(test_x, test_y),
         callbacks=[MyCallback(model_func)]
         )
+    
     print("current directory: ", os.getcwd())
     save_dir = os.path.join(os.getcwd(), 'saved_models')
     model_name = 'keras_trained_model_with_model_2.h5'
@@ -138,28 +98,27 @@ if whichmodel == "model2":
     # load 2 images
     normal_img = load_an_image() # class: paper
     img_blacked = load_an_image()[0, :, :, :] 
-    img_blacked[100:200, 100:200, :] = 0
+    img_blacked[8:22, 8:22, :] = 0
     print("model_func prediction: normal, blacked")
     print("model_func.predict(normal_img): ", model_func.predict(normal_img))
     print("model_func.predict(img_blacekd): ", model_func.predict(img_blacked[np.newaxis, :]))
     model_func.evaluate(test_x, test_y)
 else: # model3
     # Model 3 - Arslan's another alternative suggestion
-    inputs1 = Input(shape=(300, 300, 3,))
+    inputs1 = Input(shape=(28, 28, 1,))
     # Step 1 - Convolution
-    x1 = Conv2D(32, (3, 3), padding='same', input_shape = (300, 300, 3), activation = 'relu')(inputs1)
-    x1 = Conv2D(32, (3, 3), padding = 'same', input_shape = (300, 300, 3), activation='relu')(x1)
+    x1 = Conv2D(32, (3, 3), padding='same', input_shape = (28, 28, 1), activation = 'relu')(inputs1)
+    x1 = Conv2D(32, (3, 3), padding = 'same', input_shape = (28, 28, 1), activation='relu')(x1)
     x1 = MaxPooling2D(pool_size=(2, 2))(x1)
     
     # Adding a second convolutional layer
-    x1 = Conv2D(64, (3, 3), padding='same', input_shape = (150, 150, 3), activation = 'relu')(x1)
-    x1 = Conv2D(64, (3, 3), padding = 'same', input_shape = (150, 150, 3), activation='relu')(x1)
+    x1 = Conv2D(64, (3, 3), padding='same', input_shape = (14, 14, 1), activation = 'relu')(x1)
+    x1 = Conv2D(64, (3, 3), padding = 'same', input_shape = (14, 14, 1), activation='relu')(x1)
     x1 = MaxPooling2D(pool_size=(2, 2))(x1)
     
     # Adding a third convolutional layer
-    x1 = Conv2D(64, (3, 3), padding ='same', input_shape = (75, 75, 3), activation = 'relu')(x1)
-    x1 = Conv2D(64, (3, 3), padding = 'same', input_shape = (75, 75, 3), activation='relu')(x1)
-    x1 = MaxPooling2D(pool_size=(5, 5))(x1)
+    x1 = Conv2D(64, (3, 3), padding ='same', input_shape = (7, 7, 1), activation = 'relu')(x1)
+    x1 = Conv2D(64, (3, 3), padding = 'same', input_shape = (7, 7, 1), activation='relu')(x1)
     # x1 = Dropout(0.5)(x1)
     
     # Step 3 - Flattening
@@ -180,7 +139,6 @@ else: # model3
         batch_size = batch_size,
         epochs=epochs,
         shuffle = True,
-        verbose=1,
         validation_data=(test_x, test_y),
         callbacks=[MyCallback(model_func1)]
         )
@@ -195,7 +153,7 @@ else: # model3
     # load 2 images
     normal_img = load_an_image() # class: paper
     img_blacked = load_an_image()[0, :, :, :] 
-    img_blacked[100:200, 100:200, :] = 0
+    img_blacked[8:22, 8:22, :] = 0
     print("model_func1 prediction: normal, blacked")
     print("model_func1.predict(normal_img): ", model_func1.predict(normal_img))
     print("model_func1.predict(img_blacekd): ", model_func1.predict(img_blacked[np.newaxis, :]))

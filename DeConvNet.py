@@ -12,6 +12,7 @@ import cv2 as cv
 from PIL import Image
 import tensorflow as tf
 import tensorflow.keras as keras
+from tensorflow.keras.datasets import mnist
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, InputLayer, Flatten, Activation, Dense
 from tensorflow.keras.layers import Convolution2D, MaxPooling2D
@@ -30,8 +31,8 @@ class MyCallback(tf.keras.callbacks.Callback):
 
     def __init__(self, model):
         self.model = model
-        self.directory_ = '/home/hkwak/Documents/Workspace/cnn_make_visible/'
-        
+        self.directory_ = '/home/hyobin/Documents/test'
+        self.layer_bis = int(input("layer bis? ex: Input-Conv-Conv-MaxP = 3"))
         '''
         self.image_array = 
         self.layer_name = 
@@ -45,9 +46,9 @@ class MyCallback(tf.keras.callbacks.Callback):
         '''
     def on_epoch_end(self, epoch, logs=None): # store all weights after training epoch
         
-        test_images, __ = load_images(False)
+        test_images, _ = load_images(False)
         feature_maps_subset = [3, 7, 10]###
-        results_mat = np.zeros((6, len(test_images)))
+        results_mat = np.zeros((len(feature_maps_subset), len(test_images)))
         
         zeit = str(datetime.datetime.now())
         datum = zeit[:-16]+'_'
@@ -56,14 +57,14 @@ class MyCallback(tf.keras.callbacks.Callback):
         
         
         # Full trained model results:
-        if epoch == 49: ### epoch change this to 50.
-            target_dir = self.directory_+'saved_images_fulltrained_top5_this_'+str(self.model.name)+'_'+time_+'/'
+        if epoch == 0: ### epoch change this to 50.
+            target_dir = self.directory_+'MNIST_full_trained_top5_'+str(self.model.name)+'_'+time_+'/'
             if not os.path.isdir(target_dir):
                 os.makedirs(target_dir)
             
             os.chdir(target_dir)
             layer_dicts = [(layer.name, layer) for layer in self.model.layers]
-            for layer_num in range(1, 5):
+            for layer_num in range(1, self.layer_bis):
                 layer_name, _ = layer_dicts[layer_num]
                 intermediate_layer_model = Model(inputs=self.model.input, outputs=self.model.get_layer(layer_name).output)
                 
@@ -81,7 +82,7 @@ class MyCallback(tf.keras.callbacks.Callback):
                     feature_to_visualize = feature_maps_subset[k]
                     visualize_mode = 'all'
                     for img_num in image_nums: # top five save using for loop
-                        img_array, filname_ = top_five_save(feature_to_visualize, layer_num, img_num, target_dir) # save top 5 pictures.
+                        img_array, filname_ = top_five_save(feature_to_visualize, layer_num, img_num, target_dir, test_images) # save top 5 pictures.
                         deconv = process_deconv(self.model, img_array, layer_name, feature_to_visualize, visualize_mode)
                         deconv_save2(deconv, target_dir, filname_)
                 
@@ -92,7 +93,7 @@ class MyCallback(tf.keras.callbacks.Callback):
 
         # deconv image at each epoch.
         if epoch == 0 or epoch == 1 or epoch == 4 or epoch == 9 or epoch == 19 or epoch == 49 :
-            target_dir = self.directory_+'saved_images_deconv_this_'+str(self.model.name) + '_'+time_+'/'
+            target_dir = self.directory_+'MNIST_deconv_'+str(self.model.name) + '_'+time_+'/'
             if not os.path.isdir(target_dir):
                 os.makedirs(target_dir)
             os.chdir(target_dir)
@@ -102,7 +103,7 @@ class MyCallback(tf.keras.callbacks.Callback):
             # a list of dictionaries
             layer_dicts = [(layer.name, layer) for layer in self.model.layers] # convert keys of dictionary to list
             # print(layer_dicts)
-            for layer_num in range(1, 6): # jump over the input layer then visualize first five layers.
+            for layer_num in range(1, self.layer_bis): # jump over the input layer then visualize first five layers.
                 layer_name, _ = layer_dicts[layer_num]
                 feature_to_visualize = 2
                 visualize_mode = 'all'   
@@ -158,7 +159,7 @@ class DConvolution2D(object):
         # Forward pass
         self.up_data = self.up_func([data, learning_phase])
         self.up_data = np.squeeze(self.up_data, axis=0)
-        self.up_data = np.expand_dims(self.up_data, axis=0)
+        self.up_data = np.expand_dims(self.up_data, axis=0) ### here to decrease.
         # print(self.up_data.shape)
         return(self.up_data)
 
@@ -421,7 +422,59 @@ def process_deconv(model, data, layer_name, feature_to_visualize, visualize_mode
     deconv = deconv.squeeze()
     return(deconv)
 
+def load_an_image():
+    # imports a test image
+    (_, _), (x_test, y_test) = mnist.load_data()
+    img_rows, img_cols = 28, 28
+    random_img_num = 33
+    if K.image_data_format() == 'channels_first':
+        # x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
+        x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
+        input_shape = (1, img_rows, img_cols)
+    else:
+        # x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
+        x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
+        input_shape = (img_rows, img_cols, 1)
 
+    # x_train = x_train.astype('float32')
+    x_test = x_test.astype('float32')
+    # x_train /= 255
+    x_test /= 255
+    # print('x_train shape:', x_train.shape)
+    # print(x_train.shape[0], 'train samples')
+    print(x_test[33, :, :, :][np.newaxis, :], 'test sample shape')
+    return(x_test[33, :, :, :][np.newaxis, :])
+
+def load_images(train=True):
+    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+    img_rows, img_cols = 28, 28
+    
+    if K.image_data_format() == 'channels_first':
+        x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
+        x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
+        input_shape = (1, img_rows, img_cols)
+    else:
+        x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
+        x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
+        input_shape = (img_rows, img_cols, 1)
+
+    x_train = x_train.astype('float32')
+    x_test = x_test.astype('float32')
+    x_train /= 255
+    x_test /= 255
+
+    x_train = np.array(x_train)
+    y_train = np.array(y_train)
+    x_test = np.array(x_test)
+    y_test = np.array(y_test)
+
+    if train:
+        return(x_train[0:200, :, :, :], y_train[0:200])
+    else:
+        return(x_test[0:100, :, :, :], y_test[0:100])
+
+'''
 def load_an_image(image_path = '/home/hkwak/Documents/newrpsdata/test/scissors/S_100.png'):
     # image_path = '/home/hkwak/Documents/rpsdata/test/paper/testpaper01-05.png'
     png = Image.open(image_path)
@@ -442,6 +495,7 @@ def load_an_image(image_path = '/home/hkwak/Documents/newrpsdata/test/scissors/S
     # img = (img - np.mean(img))/255.0
     img = imagenet_utils.preprocess_input(x = img)/255.0
     return(img)
+
 
 def load_images(train=True):
     if train:
@@ -497,8 +551,21 @@ def load_images(train=True):
             images[k*imgs_per_class + i-1] = load_an_image(path3+s+str(i)+'.png')[0, :, :, :]
             labels[k*imgs_per_class + i-1] = 2
         return(images, labels)
-
+'''
     
+def top_five_save(feature_map_num, layer_num, image_num, target_dir, test_images):
+    sub_dir = 'Layer{}_FeatureMap{}/'.format(layer_num+1, feature_map_num)
+    if not os.path.isdir(target_dir+sub_dir):
+        os.makedirs(target_dir+sub_dir)
+    os.chdir(target_dir+sub_dir)
+    
+    img = test_images[image_num] 
+
+    filename_ = 'image{}.jpg'.format(image_num)
+    cv.imwrite(filename_, (img*255).astype(np.uint8))
+    return(img[np.newaxis, :], filename_)
+
+''' 
 def top_five_save(feature_map_num, layer_num, image_num, diese):
     path1 = '/home/hkwak/Documents/newrpsdata/test/rock/'
     path2 = '/home/hkwak/Documents/newrpsdata/test/paper/'
@@ -568,7 +635,7 @@ def top_five_save(feature_map_num, layer_num, image_num, diese):
         cv.imwrite(filename_, img)
         img = load_an_image(image_path)
         return(img, filename_)
-            
+    '''
     
 def deconv_save(deconv, layer_name, feature_map_num, epoch, layer_num, target_dir):
     '''
