@@ -103,7 +103,7 @@ if whichmodel == "model2":
     print("model_func.predict(normal_img): ", model_func.predict(normal_img))
     print("model_func.predict(img_blacekd): ", model_func.predict(img_blacked[np.newaxis, :]))
     model_func.evaluate(test_x, test_y)
-else: # model3
+elif whichmodel == "model3" : # model3
     # Model 3 - Arslan's another alternative suggestion
     inputs1 = Input(shape=(28, 28, 1,))
     # Step 1 - Convolution
@@ -159,89 +159,58 @@ else: # model3
     print("model_func1.predict(img_blacekd): ", model_func1.predict(img_blacked[np.newaxis, :]))
     model_func1.evaluate(test_x, test_y)
 
-
-################################################################
-####                Save Models                             ####
-################################################################
-
-
-################################################################
-####             Occluded image prediction                  ####
-################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-model2 = Sequential()
-model2.add(Conv2D(32, kernel_size=(3, 3),
-                 activation='relu',
-                 input_shape=(300,300,3)))
-model2.add(Conv2D(64, (3, 3), activation='relu'))
-model2.add(MaxPooling2D(pool_size=(2, 2)))
-model2.add(Dropout(0.25))
-model2.add(Flatten())
-model2.add(Dense(128, activation='relu'))
-model2.add(Dropout(0.5))
-model2.add(Dense(num_classes, activation='softmax'))
-model2.summary()
-
-model2.compile(loss='categorical_crossentropy',
-              optimizer=keras.optimizers.Adadelta(),
-              metrics=['accuracy'])
-
-model2.fit(
-    train_generator,
-    steps_per_epoch=nb_train_samples // batch_size,
-    epochs=epochs,
-    validation_data=test_generator,
-    validation_steps=validation_step,
-    callbacks=[MyCallback(model2)]
-    )
-'''
-
-
-#################################
-### Another alternative model ###
-#################################
-'''
-model3 = Sequential()
-# Step 1 - Convolution
-model3.add(Conv2D(32, (3, 3), padding='same', input_shape = input_shape, activation = 'relu'))
-model3.add(Conv2D(32, (3, 3), activation='relu'))
-model3.add(MaxPooling2D(pool_size=(2, 2)))
-model3.add(Dropout(0.5)) # antes era 0.25
-
-# Adding a second convolutional layer
-model3.add(Conv2D(64, (3, 3), padding='same', activation = 'relu'))
-model3.add(Conv2D(64, (3, 3), activation='relu'))
-model3.add(MaxPooling2D(pool_size=(2, 2)))
-model3.add(Dropout(0.5)) # antes era 0.25
-
-# Adding a third convolutional layer
-model3.add(Conv2D(64, (3, 3), padding='same', activation = 'relu'))
-model3.add(Conv2D(64, (3, 3), activation='relu'))
-model3.add(MaxPooling2D(pool_size=(2, 2)))
-model3.add(Dropout(0.5)) # antes era 0.25
-
-# Step 3 - Flattening
-model3.add(Flatten())
-# Step 4 - Full connection
-model3.add(Dense(units = 512, activation = 'relu'))
-model3.add(Dropout(0.5)) 
-model3.add(Dense(units = num_classes, activation = 'softmax'))
-
-# Compiling the CNN
-model3.compile(optimizer = 'rmsprop',
-                   loss = 'categorical_crossentropy', 
-                   metrics = ['accuracy'])
-model3.summary()
-'''
+else:
+    # Model 4 - another suggestion
+    inputs2 = Input(shape=(28, 28, 1,))
+    # Step 1 - Convolution
+    x2 = Conv2D(32, (3, 3), padding='same', input_shape = (28, 28, 1), activation = 'relu')(inputs2)
+    x2 = Conv2D(32, (3, 3), padding = 'same', input_shape = (28, 28, 1), activation='relu')(x2)
+    x2 = MaxPooling2D(pool_size=(2, 2))(x2)
+    
+    # Adding a second convolutional layer
+    x2 = Conv2D(64, (3, 3), padding='same', input_shape = (14, 14, 1), activation = 'relu')(x2)
+    x2 = Conv2D(64, (3, 3), padding = 'same', input_shape = (14, 14, 1), activation='relu')(x2)
+    x2 = MaxPooling2D(pool_size=(2, 2))(x2)
+    
+    # Adding a third convolutional layer
+    #x2 = Conv2D(64, (3, 3), padding ='same', input_shape = (7, 7, 1), activation = 'relu')(x2)
+    #x2 = Conv2D(64, (3, 3), padding = 'same', input_shape = (7, 7, 1), activation='relu')(x2)
+    # x1 = Dropout(0.5)(x1)
+    
+    # Step 3 - Flattening
+    x2 = Flatten()(x2)
+    
+    # Step 4 - Full connection
+    x2 = Dense(64, activation = 'relu')(x2)
+    # x1 = Dropout(0.5)(x1)
+    predictions1 = Dense(units = num_classes, activation = 'softmax')(x2)
+    model_func2 = Model(inputs=inputs1, outputs=predictions1, name='model3')
+    
+    # Compiling the CNN
+    model_func2.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.RMSprop(), metrics=['accuracy'])
+    model_func2.summary()
+    
+    model_func2.fit(
+        train_x, train_y,
+        batch_size = batch_size,
+        epochs=epochs,
+        shuffle = True,
+        validation_data=(test_x, test_y),
+        callbacks=[MyCallback(model_func2)]
+        )
+    print("current directory: ", os.getcwd())
+    save_dir = os.path.join(os.getcwd(), 'saved_models')
+    model_name2 = 'keras_trained_model_with_model_4.h5'
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
+    model_path2 = os.path.join(save_dir, model_name2)
+    model_func2.save(model_path1)
+    print('Saved trained model at %s ' % model_path2)
+    # load 2 images
+    normal_img = load_an_image() # class: paper
+    img_blacked = load_an_image()[0, :, :, :] 
+    img_blacked[8:22, 8:22, :] = 0
+    print("model_func1 prediction: normal, blacked")
+    print("model_func1.predict(normal_img): ", model_func2.predict(normal_img))
+    print("model_func1.predict(img_blacekd): ", model_func2.predict(img_blacked[np.newaxis, :]))
+    model_func2.evaluate(test_x, test_y)
